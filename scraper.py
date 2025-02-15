@@ -8,22 +8,28 @@ def fetch_data():
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(url)
+        
+        # Odotetaan, että sivu latautuu
+        page.wait_for_selector('body')
 
-        # Odotetaan, että taulukko latautuu
-        page.wait_for_selector('table')
+        # Haetaan kaikki tekstisisällöt, koska data voi olla piilotettuna erikoiselementteihin
+        text_content = page.locator('body').inner_text()
 
-        # Haetaan taulukon rivit
-        rows = page.query_selector_all('table tr')
-
+        # Erotellaan pelaajatiedot, oletetaan että jokainen rivi on omalla rivillään
+        rows = text_content.split("\n")
         data = []
-        for row in rows[1:]:  # Ohitetaan otsikkorivi
-            cells = row.query_selector_all('td')
-            player_data = [cell.inner_text() for cell in cells]
-            data.append(player_data)
+
+        for row in rows:
+            row = row.strip()
+            # Etsitään rivejä, joissa on numeroita (O, M, S, P, Min)
+            if row and any(char.isdigit() for char in row):
+                parts = row.split("\t")  # Erotellaan sarakkeet välilehden (tab) perusteella
+                if len(parts) >= 7:  # Varmistetaan, että kaikki tiedot löytyvät
+                    data.append(parts[:7])
 
         browser.close()
 
-    # Tallennetaan CSV-muotoon
+    # Tallennetaan CSV-tiedostoon
     with open('tulokset.csv', 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(['Pelaaja', 'Joukkue', 'O', 'M', 'S', 'P', 'Min'])
