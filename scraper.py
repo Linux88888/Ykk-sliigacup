@@ -10,18 +10,23 @@ def fetch_data():
         page = browser.new_page()
         page.goto(url)
         
-        # Odotetaan, että sivu latautuu
-        page.wait_for_selector('body')
+        # Odotetaan, että kaikki tekstit latautuvat
+        page.wait_for_timeout(3000)  # 3 sekunnin viive varmuuden vuoksi
 
-        # Haetaan koko sivun tekstisisältö
+        # Tulostetaan koko sivun teksti testimielessä
         text_content = page.locator('body').inner_text()
+        print("🔍 Koko sivun teksti:")
+        print(text_content[:1000])  # Tulostetaan ensimmäiset 1000 merkkiä
 
         # Suljetaan selain
         browser.close()
 
-    # Etsitään vain relevantit rivit (joissa on pelaajatietoja)
+    # Testataan löytyykö pelaajia
     pattern = re.compile(r"([A-Za-zÅÄÖåäö\s-]+)\s+([A-Za-zÅÄÖåäö\s-]+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)")
     matches = pattern.findall(text_content)
+
+    if not matches:
+        print("⚠️ Ei löydetty yhtään pelaajatietoa!")
 
     # Tallennetaan CSV-tiedostoon
     with open('tulokset.csv', 'w', newline='', encoding='utf-8') as f:
