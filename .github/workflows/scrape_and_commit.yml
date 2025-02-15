@@ -2,48 +2,36 @@ name: Scrape and Commit Data
 
 on:
   schedule:
-    - cron: "0 12 * * *"  # Ajaa joka päivä klo 12 UTC
-  workflow_dispatch:  # Mahdollistaa manuaalisen ajon GitHubista
+    - cron: '0 * * * *'  # Tämä ajaa työnkulun kerran tunnissa
+  workflow_dispatch:
 
 jobs:
-  scrape_and_commit:
+  scrape:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Hakee koko historian, ei vain viimeisintä committia
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
 
-      - name: Install dependencies
-        run: pip install playwright && playwright install
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-      - name: Run scraper
-        run: python scraper.py
+    - name: Run scraper script
+      run: python scraper.py
 
-      - name: Commit and push changes
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          timestamp=$(date -u)
-          echo "Viimeisin päivitys: $timestamp" > timestamp.txt
-          git add tulokset.csv timestamp.txt
-
-          # Tarkistetaan, onko tiedostoihin tullut muutoksia
-          if git diff --cached --quiet; then
-            echo "Ei uusia muutoksia, commit peruutettu."
-            exit 0
-          fi
-
-          git commit -m "Päivitetty tulokset: $timestamp"
-
-          # Vedetään uusimmat muutokset ja yhdistetään ne
-          git pull --rebase
-
-          # Yritetään pushaa muutokset
-          git push
+    - name: Commit results and timestamp
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Actions"
+        git add tulokset.csv timestamp.txt
+        git commit -m "Päivitetty tulokset: $(date)"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
