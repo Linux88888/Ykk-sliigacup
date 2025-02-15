@@ -12,10 +12,10 @@ def fetch_data():
         # Odotetaan, että sivu latautuu
         page.wait_for_selector('body')
 
-        # Haetaan kaikki tekstisisällöt, koska data voi olla piilotettuna erikoiselementteihin
+        # Haetaan kaikki tekstisisällöt
         text_content = page.locator('body').inner_text()
 
-        # Erotellaan pelaajatiedot, oletetaan että jokainen rivi on omalla rivillään
+        # Erotellaan pelaajatiedot riveittäin
         rows = text_content.split("\n")
         data = []
 
@@ -23,7 +23,7 @@ def fetch_data():
             row = row.strip()
             # Etsitään rivejä, joissa on numeroita (O, M, S, P, Min)
             if row and any(char.isdigit() for char in row):
-                parts = row.split("\t")  # Erotellaan sarakkeet välilehden (tab) perusteella
+                parts = row.split("\t")  # Erotellaan sarakkeet tab-merkin perusteella
                 if len(parts) >= 7:  # Varmistetaan, että kaikki tiedot löytyvät
                     data.append(parts[:7])
 
@@ -34,6 +34,9 @@ def fetch_data():
         writer = csv.writer(f)
         writer.writerow(['Pelaaja', 'Joukkue', 'O', 'M', 'S', 'P', 'Min'])
         writer.writerows(data)
+
+    # Tulostetaan tiedot terminaaliin
+    print("\n".join(["\t".join(row) for row in data]))
 
 if __name__ == "__main__":
     fetch_data()
