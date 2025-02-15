@@ -1,49 +1,41 @@
-from playwright.sync_api import sync_playwright
+import requests
 from bs4 import BeautifulSoup
 import csv
+from datetime import datetime
 
-def fetch_and_parse_data():
-    url = "https://tulospalvelu.palloliitto.fi/category/M1LCUP!M1LCUP25/statistics/points"
-    
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto(url)
-        
-        # Odotetaan, että sivu latautuu
-        page.wait_for_timeout(5000)  # Odotetaan 5 sekuntia
-        
-        # Haetaan koko HTML-sisältö
-        page_html = page.content()  
-        
-        # Käytetään BeautifulSoupia HTML:n jäsentämiseen
-        soup = BeautifulSoup(page_html, "html.parser")
-        
-        # Etsitään taulukot, jotka sisältävät pelaajatiedot
-        rows = soup.find_all("tr")  # Etsitään kaikki rivit
-        
-        with open('tulokset.csv', 'w', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow(['Pelaaja', 'Joukkue', 'O', 'M', 'S', 'P', 'Min'])  # Kirjoitetaan otsikko CSV:hen
-            
-            # Käydään läpi kaikki rivit ja etsitään oikeat tiedot
-            for row in rows:
-                columns = row.find_all('td')
-                if len(columns) >= 7:  # Varmistetaan, että rivillä on tarpeeksi soluja
-                    player = columns[0].text.strip()  # Pelaajan nimi
-                    team = columns[1].text.strip()  # Joukkueen nimi
-                    o = columns[2].text.strip()  # O
-                    m = columns[3].text.strip()  # M
-                    s = columns[4].text.strip()  # S
-                    p = columns[5].text.strip()  # P
-                    min = columns[6].text.strip()  # Min
-                    
-                    # Kirjoitetaan rivit CSV-tiedostoon
-                    writer.writerow([player, team, o, m, s, p, min])
-        
-        # Suljetaan selain
-        browser.close()
+# Määritellään URL, jolta data haetaan
+url = "https://tulospalvelu.palloliitto.fi/category/M1LCUP!M1LCUP25/statistics/points"
 
-if __name__ == "__main__":
-    fetch_and_parse_data()
+# Haetaan sivu
+response = requests.get(url)
+
+# Tarkistetaan, että sivu on ladattu oikein
+if response.status_code == 200:
+    page_content = response.text
+
+    # Käytetään BeautifulSoupia sivun analysoimiseen
+    soup = BeautifulSoup(page_content, 'html.parser')
+
+    # Etsitään taulukon rivit
+    rows = soup.find_all('tr')
+
+    # Avataan CSV-tiedosto kirjoitusta varten
+    with open('tulokset.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Pelaaja', 'Joukkue', 'O', 'M', 'S', 'P', 'Min'])
+
+        # Käydään läpi kaikki rivit
+        for row in rows:
+            row_text = row.get_text(separator="\t").strip()
+            if any(char.isdigit() for char in row_text):
+                parts = row_text.split("\t")
+                if len(parts) >= 7:
+                    writer.writerow(parts)
+
+    # Tallennetaan myös aikaleima tiedostoon
+    with open("timestamp.txt", "w") as timestamp_file:
+        timestamp_file.write(f"Päivitetty: {datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y')}")
+else:
+    print("Virhe ladattaessa sivua.")
+
 
