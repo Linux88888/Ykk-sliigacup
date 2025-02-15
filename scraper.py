@@ -14,14 +14,14 @@ def scrape_and_save():
         url = "https://tulospalvelu.palloliitto.fi/category/M1LCUP!M1LCUP25/statistics/points"
         page.goto(url)
 
-        # Odotetaan, että sivu on ladattu ja tiedot ovat näkyvissä
-        page.wait_for_selector("tr")  # Oletetaan, että taulukon rivit löytyvät 'tr' tagista
+        # Odotetaan, että taulukon rivit ovat näkyvissä
+        page.wait_for_selector("table tbody tr")
 
         # Tulostetaan koko sivun HTML tarkistusta varten
         print(page.content())  # Tarkistaa sivun sisällön
 
         # Haetaan taulukon rivit
-        rows = page.query_selector_all('table tr')  # Käytetään tarkempaa valitsinta
+        rows = page.query_selector_all('table tbody tr')  # Käytetään tarkempaa valitsinta
 
         # Avataan CSV-tiedosto kirjoitusta varten
         with open('tulokset.csv', 'w', newline='') as file:
@@ -30,12 +30,11 @@ def scrape_and_save():
 
             # Käydään läpi rivit ja tallennetaan tiedot CSV-tiedostoon
             for row in rows:
-                row_text = row.inner_text()
-                if any(char.isdigit() for char in row_text):  # Tarkistetaan, että rivillä on numeroita
-                    parts = row_text.split("\n")
-                    if len(parts) >= 7:
-                        writer.writerow(parts)
-                        print(f"Rivi tallennettu: {parts}")  # Tulostetaan, mitä tallennetaan
+                columns = row.query_selector_all('td')  # Hakee kaikki solut riviltä
+                data = [col.inner_text().strip() for col in columns]  # Hakee solujen tekstin ja poistaa tyhjät välit
+                if len(data) >= 7:  # Varmistetaan, että rivillä on vähintään 7 solua
+                    writer.writerow(data)  # Kirjoitetaan tiedot CSV-tiedostoon
+                    print(f"Rivi tallennettu: {data}")  # Tulostetaan, mitä tallennetaan
 
         # Tallennetaan myös aikaleima tiedostoon
         with open("timestamp.txt", "w") as timestamp_file:
