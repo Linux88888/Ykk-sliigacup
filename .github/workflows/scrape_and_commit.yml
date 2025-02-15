@@ -2,38 +2,34 @@ name: Scrape and Commit Data
 
 on:
   schedule:
-    - cron: '0 12 * * *'  # Ajaa joka päivä klo 12:00 UTC
+    - cron: "0 12 * * *"  # Ajaa joka päivä klo 12 UTC
   workflow_dispatch:  # Mahdollistaa manuaalisen ajon GitHubista
 
 jobs:
-  scrape:
+  scrape_and_commit:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          python -m playwright install
+        run: pip install playwright && playwright install
 
-      - name: Run scraping script
+      - name: Run scraper
         run: python scraper.py
 
-      - name: Commit and push changes
+      - name: Force commit changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add tulokset.csv
           timestamp=$(date -u)
+          echo "Viimeisin päivitys: $timestamp" > timestamp.txt  # Pakottaa muutoksen
+          git add tulokset.csv timestamp.txt
           git commit -m "Päivitetty tulokset: $timestamp" || echo "Ei muutoksia commitattavaksi"
           git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
