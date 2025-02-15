@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Hakee koko historian, ei vain viimeisintä committia
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -24,12 +26,24 @@ jobs:
       - name: Run scraper
         run: python scraper.py
 
-      - name: Force commit changes
+      - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           timestamp=$(date -u)
-          echo "Viimeisin päivitys: $timestamp" > timestamp.txt  # Pakottaa muutoksen
+          echo "Viimeisin päivitys: $timestamp" > timestamp.txt
           git add tulokset.csv timestamp.txt
-          git commit -m "Päivitetty tulokset: $timestamp" || echo "Ei muutoksia commitattavaksi"
+
+          # Tarkistetaan, onko tiedostoihin tullut muutoksia
+          if git diff --cached --quiet; then
+            echo "Ei uusia muutoksia, commit peruutettu."
+            exit 0
+          fi
+
+          git commit -m "Päivitetty tulokset: $timestamp"
+
+          # Vedetään uusimmat muutokset ja yhdistetään ne
+          git pull --rebase
+
+          # Yritetään pushaa muutokset
           git push
