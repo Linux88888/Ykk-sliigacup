@@ -17,8 +17,11 @@ def scrape_and_save():
         # Odotetaan, että sivu on ladattu ja tiedot ovat näkyvissä
         page.wait_for_selector("tr")  # Oletetaan, että taulukon rivit löytyvät 'tr' tagista
 
+        # Tulostetaan koko sivun HTML tarkistusta varten
+        print(page.content())  # Tarkistaa sivun sisällön
+
         # Haetaan taulukon rivit
-        rows = page.query_selector_all('tr')
+        rows = page.query_selector_all('table tr')  # Käytetään tarkempaa valitsinta
 
         # Avataan CSV-tiedosto kirjoitusta varten
         with open('tulokset.csv', 'w', newline='') as file:
