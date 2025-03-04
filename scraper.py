@@ -49,3 +49,4 @@ def scrape_and_save():
 
 # Suoritetaan toiminto
 scrape_and_save()
+
