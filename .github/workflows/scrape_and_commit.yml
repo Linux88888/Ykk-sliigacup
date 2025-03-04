@@ -1,12 +1,11 @@
-name: Run Scraper
+name: Run Football Stats Scraper
 
 on:
   push:
     branches:
       - main
-  # Voit lisätä myös aikataulun, jos haluat ajon tietyin väliajoin:
-  # schedule:
-  #   - cron: "0 * * * *"  # esim. kerran tunnissa
+  schedule:
+    - cron: "0 12 * * *"  # Run daily at 12:00 UTC
 
 jobs:
   scrape:
@@ -14,29 +13,37 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
-
-      - name: Install Playwright Browsers
-        run: playwright install
+          pip install playwright
+          playwright install chromium
+          pip install requests bs4
 
       - name: Run Python scraper
-        run: python scraper.py
-
-      - name: Commit and push changes
-        # Tämä vaihe committaa ja pushaa päivittyneet tiedostot (tulokset.csv, timestamp.txt) takaisin GitHubiin
+        run: |
+          python scraper.py
+        
+      - name: Upload artifacts for debugging
+        if: always()  # Always run this step, even if scraper fails
+        uses: actions/upload-artifact@v3
+        with:
+          name: debug-artifacts
+          path: |
+            *.png
+            *.html
+            error_*.txt
+      
+      - name: Commit and push if there are changes
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add tulokset.csv timestamp.txt
-          # --allow-empty tarvitaan, jos data on sama ja halutaan kuitenkin päivittää timestamp.
-          git commit -m "Update results [skip ci]" --allow-empty
+          git diff --staged --quiet || git commit -m "Update football stats [skip ci]"
           git push
