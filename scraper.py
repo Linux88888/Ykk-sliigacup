@@ -24,6 +24,9 @@ def scrape_and_save():
         rows = page.query_selector_all('table tbody tr')  # Käytetään tarkempaa valitsinta
         print(f"Rivit löydetty: {len(rows)}")  # Debug-tulostus
 
+        if len(rows) == 0:
+            print("Yhtään riviä ei löytynyt. Varmista, että valitsimet ovat oikein.")
+
         # Avataan CSV-tiedosto kirjoitusta varten
         with open('tulokset.csv', 'w', newline='') as file:
             writer = csv.writer(file)
@@ -37,6 +40,8 @@ def scrape_and_save():
                 if len(data) >= 7:  # Varmistetaan, että rivillä on vähintään 7 solua
                     writer.writerow(data)  # Kirjoitetaan tiedot CSV-tiedostoon
                     print(f"Rivi tallennettu: {data}")  # Tulostetaan, mitä tallennetaan
+                else:
+                    print(f"Riviä ei tallennettu, koska siinä ei ole tarpeeksi soluja: {data}")
 
         # Tallennetaan myös aikaleima tiedostoon
         with open("timestamp.txt", "w") as timestamp_file:
