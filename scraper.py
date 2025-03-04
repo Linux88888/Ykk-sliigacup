@@ -2,55 +2,55 @@ from playwright.sync_api import sync_playwright
 import csv
 from datetime import datetime
 
-# Funktio tietojen hakemiseen ja kirjoittamiseen CSV-tiedostoon
 def scrape_and_save():
-    # Käynnistetään Playwright
     with sync_playwright() as p:
-        # Käynnistetään selain
+        # 1. Käynnistä selain stealth-tilassa (vähemmän botin näköinen)
         browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
+        context = browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
+            viewport={"width": 1920, "height": 1080}
+        )
+        page = context.new_page()
 
-        # Avaa URL
-        url = "https://tulospalvelu.palloliitto.fi/category/M1LCUP!M1LCUP25/statistics/points"
-        page.goto(url)
+        try:
+            # 2. Avaa sivu ja odota verkkopyyntöjä
+            page.goto("https://tulospalvelu.palloliitto.fi/category/M1LCUP!M1LCUP25/statistics/points", wait_until="networkidle")
+            
+            # 3. Odota konkreettista taulukon sisältöä
+            page.wait_for_selector("td:has-text('Pelaaja')", timeout=30000)
+            
+            # 4. Etsi taulukko uudella valitsimella
+            table = page.query_selector("div.v-data-table table")
+            if not table:
+                raise Exception("Taulukkoa ei löytynyt!")
+                
+            rows = table.query_selector_all("tbody tr")
+            print(f"Löydetty {len(rows)} riviä")
 
-        # Odotetaan, että taulukon rivit ovat näkyvissä (odotetaan jopa 20 sekuntia)
-        page.wait_for_selector("table.v-data-table tbody tr", timeout=20000)
+            # 5. Tallenna CSV
+            with open('tulokset.csv', 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(['Pelaaja','Joukkue','O','M','S','P','Min'])
+                
+                for row in rows:
+                    cells = [cell.inner_text().strip() for cell in row.query_selector_all("td")]
+                    if len(cells) == 7:
+                        writer.writerow(cells)
+                        print(f"Tallennettu: {cells}")
+                    else:
+                        print(f"Ohitettu epätäydellinen rivi: {cells}")
 
-        # Tulostetaan koko sivun HTML tarkistusta varten
-        print(page.content())  # Tarkistaa sivun sisällön
+            # 6. Päivitä timestamp
+            with open("timestamp.txt", "w") as ts_file:
+                ts_file.write(datetime.utcnow().isoformat())
 
-        # Haetaan taulukon rivit
-        rows = page.query_selector_all('table.v-data-table tbody tr')  # Käytetään tarkempaa valitsinta
-        print(f"Rivit löydetty: {len(rows)}")  # Debug-tulostus
+        except Exception as e:
+            print(f"VIRHE: {str(e)}")
+            page.screenshot(path="error.png")
+            raise e
+            
+        finally:
+            browser.close()
 
-        if len(rows) == 0:
-            print("Yhtään riviä ei löytynyt. Varmista, että valitsimet ovat oikein.")
-
-        # Avataan CSV-tiedosto kirjoitusta varten
-        with open('tulokset.csv', 'w', newline='', encoding='utf-8') as file:
-            writer = csv.writer(file)
-            writer.writerow(['Pelaaja', 'Joukkue', 'O', 'M', 'S', 'P', 'Min'])
-            print("CSV-tiedosto avattu kirjoitusta varten.")  # Debug
-
-            # Käydään läpi rivit ja tallennetaan tiedot CSV-tiedostoon
-            for row in rows:
-                columns = row.query_selector_all('td')  # Hakee kaikki solut riviltä
-                data = [col.inner_text().strip() for col in columns]  # Hakee solujen tekstin ja poistaa tyhjät välit
-                if len(data) >= 7:  # Varmistetaan, että rivillä on vähintään 7 solua
-                    writer.writerow(data)  # Kirjoitetaan tiedot CSV-tiedostoon
-                    print(f"Rivi tallennettu: {data}")  # Tulostetaan, mitä tallennetaan
-                else:
-                    print(f"Riviä ei tallennettu, koska siinä ei ole tarpeeksi soluja: {data}")
-
-        # Tallennetaan myös aikaleima tiedostoon
-        with open("timestamp.txt", "w", encoding='utf-8') as timestamp_file:
-            timestamp_file.write(f"Päivitetty: {datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y')}")
-            print("Aikaleima tallennettu.")  # Debug
-
-        # Suljetaan selain
-        browser.close()
-        print("Selaimen istunto suljettu.")  # Debug
-
-# Suoritetaan toiminto
-scrape_and_save()
+if __name__ == "__main__":
+    scrape_and_save()
