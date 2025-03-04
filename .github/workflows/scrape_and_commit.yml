@@ -1,46 +1,36 @@
-name: Run Football Stats Scraper
+name: Scrape Data
 
 on:
-  push:
-    branches:
-      - main
   schedule:
-    - cron: "0 12 * * *"  # Run daily at 12:00 UTC
+    - cron: '0 */2 * * *'  # Ajaa 2 tunnin välein
+  workflow_dispatch:  # Mahdollistaa manuaalisen käynnistyksen
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: '3.8'
 
       - name: Install dependencies
         run: |
-          pip install playwright
+          pip install -r requirements.txt
           playwright install chromium
-          pip install requests bs4
+          playwright install-deps
 
-      - name: Run Python scraper
+      - name: Run scraper
+        run: python scraper.py
+
+      - name: Commit changes
         run: |
-          python scraper.py
-        
-      - name: Upload artifacts for debugging
-        if: always()  # Always run this step, even if scraper fails
-        uses: actions/upload-artifact@v4  # Updated to v4
-        with:
-          name: debug-artifacts
-          path: debug/
-      
-      - name: Commit and push if there are changes
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
           git add tulokset.csv timestamp.txt
-          git diff --staged --quiet || git commit -m "Update football stats [skip ci]"
+          git commit -m "Automatic data update" || echo "No changes to commit"
           git push
