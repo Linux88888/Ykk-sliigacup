@@ -13,10 +13,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
@@ -32,13 +32,10 @@ jobs:
         
       - name: Upload artifacts for debugging
         if: always()  # Always run this step, even if scraper fails
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # Updated to v4
         with:
           name: debug-artifacts
-          path: |
-            *.png
-            *.html
-            error_*.txt
+          path: debug/
       
       - name: Commit and push if there are changes
         run: |
