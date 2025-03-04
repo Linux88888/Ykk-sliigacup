@@ -1,36 +1,49 @@
-name: Scrape Data
+name: Scrape and Update
 
 on:
+  push:
+    branches: [ main ]
   schedule:
-    - cron: '0 */2 * * *'  # Ajaa 2 tunnin välein
-  workflow_dispatch:  # Mahdollistaa manuaalisen käynnistyksen
+    - cron: '0 */6 * * *'  # Ajaa 6 tunnin välein
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Hakee koko git-historian
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          playwright install chromium
-          playwright install-deps
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        playwright install chromium
 
-      - name: Run scraper
-        run: python scraper.py
+    - name: Run scraper
+      run: python scraper.py
 
-      - name: Commit changes
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add tulokset.csv timestamp.txt
-          git commit -m "Automatic data update" || echo "No changes to commit"
-          git push
+    - name: Commit and Push
+      run: |
+        # Aseta Git-konfiguraatio
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        
+        # Lisää kaikki muutokset ja tee commit
+        git add tulokset.csv timestamp.txt
+        git commit -m "Automatic data update [skip ci]" || echo "Ei muutoksia"
+        
+        # Päivitä lokaali repo ennen pushia
+        git pull --rebase origin main
+        
+        # Puske muutokset turvallisesti
+        git push origin main
+      env:
+        # Käytä GitHub tokenia oikeuksien hallintaan
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
