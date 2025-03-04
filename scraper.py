@@ -14,21 +14,21 @@ def scrape_and_save():
         url = "https://tulospalvelu.palloliitto.fi/category/M1LCUP!M1LCUP25/statistics/points"
         page.goto(url)
 
-        # Odotetaan, että taulukon rivit ovat näkyvissä (odotetaan jopa 10 sekuntia)
-        page.wait_for_selector("table tbody tr", timeout=10000)
+        # Odotetaan, että taulukon rivit ovat näkyvissä (odotetaan jopa 20 sekuntia)
+        page.wait_for_selector("table.v-data-table tbody tr", timeout=20000)
 
         # Tulostetaan koko sivun HTML tarkistusta varten
         print(page.content())  # Tarkistaa sivun sisällön
 
         # Haetaan taulukon rivit
-        rows = page.query_selector_all('table tbody tr')  # Käytetään tarkempaa valitsinta
+        rows = page.query_selector_all('table.v-data-table tbody tr')  # Käytetään tarkempaa valitsinta
         print(f"Rivit löydetty: {len(rows)}")  # Debug-tulostus
 
         if len(rows) == 0:
             print("Yhtään riviä ei löytynyt. Varmista, että valitsimet ovat oikein.")
 
         # Avataan CSV-tiedosto kirjoitusta varten
-        with open('tulokset.csv', 'w', newline='') as file:
+        with open('tulokset.csv', 'w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
             writer.writerow(['Pelaaja', 'Joukkue', 'O', 'M', 'S', 'P', 'Min'])
             print("CSV-tiedosto avattu kirjoitusta varten.")  # Debug
@@ -44,7 +44,7 @@ def scrape_and_save():
                     print(f"Riviä ei tallennettu, koska siinä ei ole tarpeeksi soluja: {data}")
 
         # Tallennetaan myös aikaleima tiedostoon
-        with open("timestamp.txt", "w") as timestamp_file:
+        with open("timestamp.txt", "w", encoding='utf-8') as timestamp_file:
             timestamp_file.write(f"Päivitetty: {datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y')}")
             print("Aikaleima tallennettu.")  # Debug
 
@@ -54,4 +54,3 @@ def scrape_and_save():
 
 # Suoritetaan toiminto
 scrape_and_save()
-
