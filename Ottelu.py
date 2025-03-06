@@ -1,68 +1,74 @@
 from playwright.sync_api import sync_playwright
 import csv
-from datetime import datetime
 
-def scrape_html():
+def scrape_match_stats(match_url):
     with sync_playwright() as p:
-        # Alustetaan selain stealth-tilassa
-        browser = p.chromium.launch(
-            headless=True,
-            args=[
-                '--disable-blink-features=AutomationControlled',
-                '--no-sandbox'
-            ]
-        )
-        context = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            viewport={"width": 1920, "height": 1080}
-        )
-        page = context.new_page()
-
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        
         try:
-            # Navigoi sivulle, joka näyttää pelatut ottelut
-            page.goto("https://tulospalvelu.palloliitto.fi/category/M1LCUP!M1LCUP25/results",
-                      wait_until="networkidle",
-                      timeout=60000)
-
-            # Etsi kaikki ottelut ja kerää niiden numerot
-            match_links = page.query_selector_all('.match-link')  # Korvaa tämä oikealla valitsimella
-            match_ids = [link.get_attribute('href').split('/')[-1] for link in match_links]
-
-            # Kerätään koko sivun HTML jokaisesta ottelusta
-            html_data = []
-            for match_id in match_ids:
-                # Avaa ottelun tilastosivu
-                match_page = context.new_page()
-                match_page.goto(f"https://tulospalvelu.palloliitto.fi/match/3738924/stats",
-                                wait_until="networkidle",
-                                timeout=60000)
-
-                # Tallenna koko sivun HTML
-                html_content = match_page.content()
-                html_data.append({'match_id': match_id, 'html': html_content})
-
-                # Sulje ottelun sivu
-                match_page.close()
-
-            # Tallennetaan HTML-datat Ottelut.csv-tiedostoon
-            with open('Ottelut.csv', 'w', newline='', encoding='utf-8') as f:
-                writer = csv.DictWriter(f, fieldnames=['match_id', 'html'])
-                writer.writeheader()
-                writer.writerows(html_data)
-
-            # Päivitetään timestamp
-            with open('timestamp.txt', 'w') as f:
-                f.write(datetime.utcnow().isoformat())
-
-            print("HTML-datan haku ja tallennus onnistui!")
-
+            # Navigoi ottelun tilastosivulle
+            page.goto(match_url, wait_until="networkidle", timeout=60000)
+            
+            # Odota tilastojen latautumista
+            page.wait_for_selector('div.stats-container', timeout=30000)
+            
+            # Kerää perustiedot
+            match_info = {
+                'match_id': match_url.split('/')[-2],  # Poimitaan ID URL:sta
+                'date': page.query_selector('.match-date').inner_text(),
+                'teams': page.query_selector('.match-teams').inner_text(),
+                'score': page.query_selector('.match-score').inner_text(),
+                'stats': {}
+            }
+            
+            # Kerää tilastot
+            stats_sections = page.query_selector_all('div.stats-section')
+            for section in stats_sections:
+                title = section.query_selector('h3').inner_text()
+                stats = {}
+                for row in section.query_selector_all('.stats-row'):
+                    label = row.query_selector('.stats-label').inner_text()
+                    value = row.query_selector('.stats-value').inner_text()
+                    stats[label] = value
+                match_info['stats'][title] = stats
+            
+            return match_info
+            
         except Exception as e:
-            print(f"Virhe: {str(e)}")
-            page.screenshot(path='error.png')
-            raise
-
+            print(f"Virhe ottelussa {match_url}: {str(e)}")
+            return None
+            
         finally:
             browser.close()
 
+def save_to_csv(match_data, filename="Ottelut.csv"):
+    if match_data:
+        with open(filename, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            # Otsikkorivi
+            writer.writerow(['Match ID', 'Päivämäärä', 'Joukkueet', 'Tulos', 'Tilasto', 'Arvo'])
+            
+            # Data
+            for stat_type, stats in match_data['stats'].items():
+                for label, value in stats.items():
+                    writer.writerow([
+                        match_data['match_id'],
+                        match_data['date'],
+                        match_data['teams'],
+                        match_data['score'],
+                        f"{stat_type} - {label}",
+                        value
+                    ])
+        
+        print(f"Tilastot tallennettu tiedostoon {filename}")
+    else:
+        print("Ei tallennettavia tietoja")
+
 if __name__ == "__main__":
-    scrape_html()
+    # Testaa yhdellä ottelulla
+    match_url = "https://tulospalvelu.palloliitto.fi/match/3738924/stats"
+    match_data = scrape_match_stats(match_url)
+    
+    if match_data:
+        save_to_csv(match_data)
