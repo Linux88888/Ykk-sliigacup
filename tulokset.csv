@@ -2,8 +2,8 @@ Pelaaja,Joukkue,O,M,S,P,Min
 Helén Onni,TPS,4,3,2,5,357
 Kallio Elias,KäPa,4,3,1,4,360
 Lehtisalo Otto,SalPa,4,3,1,4,272
-Mero Toivo,HJK Klubi 04,4,3,0,3,351
-Noori Hadi,HJK Klubi 04,3,2,2,4,237
+Mero Toivo,HJK Klubi 04,4,3,0,3,353
+Noori Hadi,HJK Klubi 04,3,2,2,4,239
 Huovila Vilho,FC Lahti,4,2,1,3,223
 Mohammed Nasiru,EIF,4,2,1,3,359
 Dahlfors Oscar,TPS,3,2,0,2,184
@@ -12,7 +12,7 @@ Pietsalo Roni,EIF,4,2,0,2,360
 Pulkkinen Mikael,KäPa,4,2,0,2,270
 Turunen Miro,Jippo,4,2,0,2,263
 Hänninen Onni,SJK Akatemia,3,1,2,3,161
-Kajanoja Karlo,HJK Klubi 04,3,1,1,2,111
+Kajanoja Karlo,HJK Klubi 04,3,1,1,2,109
 Ojanen Justus,SJK Akatemia,3,1,1,2,253
 Pihlaja Oskar,Jippo,4,1,1,2,330
 Bojang Momodou,SJK Akatemia,1,1,0,1,74
@@ -23,11 +23,11 @@ Ahadi Mosawer,JäPS,3,1,0,1,225
 Ahola Ville,JäPS,3,1,0,1,240
 Hyvönen Marlo,HJK Klubi 04,3,1,0,1,176
 Kikuchi Yoshiaki,Jippo,3,1,0,1,269
-Manneh Foday,KäPa,3,1,0,1,144
+Manneh Foday,KäPa,3,1,0,1,145
 Pikkuhookana Jasper,PK-35,3,1,0,1,108
 Venäläinen Eetu,Jippo,3,1,0,1,60
 Cukici Denis,KäPa,4,1,0,1,281
-Etu Francis Gerrald,HJK Klubi 04,4,1,0,1,163
+Etu Francis Gerrald,HJK Klubi 04,4,1,0,1,165
 Forss Lassi,Jippo,4,1,0,1,336
 Harjanne Rasmus,TPS,4,1,0,1,296
 Kaijasilta Noah,SalPa,4,1,0,1,264
@@ -40,7 +40,7 @@ Boström Aapo,TPS,4,0,2,2,360
 Gottberg Jakob,EIF,4,0,2,2,360
 Hannula Otto,HJK Klubi 04,4,0,2,2,360
 Stenius Santeri,EIF,2,0,1,1,180
-Tuominen Eino,HJK Klubi 04,2,0,1,1,25
+Tuominen Eino,HJK Klubi 04,2,0,1,1,23
 Forsman Pasi,Jippo,3,0,1,1,225
 Ikonen Lasse,TPS,3,0,1,1,270
 Lyyra Aleksi,SJK Akatemia,3,0,1,1,225
@@ -73,13 +73,13 @@ Machaal Aniis,SJK Akatemia,1,0,0,0,90
 Mahugo Barrena Karlos,Jippo,1,0,0,0,45
 Mehmeti Endrit,PK-35,1,0,0,0,64
 Meriläinen Kasper,KäPa,1,0,0,0,26
-Minkkinen Otto,KäPa,1,0,0,0,17
+Minkkinen Otto,KäPa,1,0,0,0,16
 Moilanen Ilmari,SJK Akatemia,1,0,0,0,2
 Mäkelä Eemeli,SalPa,1,0,0,0,28
 Okoye Chinaecherem Frankline,PK-35,1,0,0,0,61
 Pakkanen Roope,EIF,1,0,0,0,61
 Pohjolainen Santeri,TPS,1,0,0,0,45
-Ripatti Daniel,KäPa,1,0,0,0,17
+Ripatti Daniel,KäPa,1,0,0,0,16
 Ristola Aleksi,JäPS,1,0,0,0,66
 Rodriguez Acurcia Miquel Antoni,SJK Akatemia,1,0,0,0,90
 Ruponen Reino,SalPa,1,0,0,0,27
@@ -109,7 +109,7 @@ Kangasniemi Iiro,SJK Akatemia,2,0,0,0,90
 Kante Abdoulaye,FC Lahti,2,0,0,0,43
 Ketonen Veka,JäPS,2,0,0,0,162
 Laiho Janne,JäPS,2,0,0,0,180
-Le Goff-Conan Adam,HJK Klubi 04,2,0,0,0,118
+Le Goff-Conan Adam,HJK Klubi 04,2,0,0,0,119
 Linnas Otso,EIF,2,0,0,0,180
 Lintervo Wertti,TPS,2,0,0,0,26
 Malik Ronal,SJK Akatemia,2,0,0,0,61
@@ -120,7 +120,7 @@ Palmula Leevi,HJK Klubi 04,2,0,0,0,87
 Pitkälä Eino-Iivari,PK-35,2,0,0,0,117
 Ranta Antti,SalPa,2,0,0,0,18
 Rantasalmi Noah,SJK Akatemia,2,0,0,0,45
-Sabwele Adiche,HJK Klubi 04,2,0,0,0,54
+Sabwele Adiche,HJK Klubi 04,2,0,0,0,52
 Savini Sebastian,SJK Akatemia,2,0,0,0,135
 Serdarevic Amar,SalPa,2,0,0,0,30
 Sihvonen Atte,TPS,2,0,0,0,180
@@ -138,7 +138,7 @@ Ameen Mustafa,HJK Klubi 04,3,0,0,0,96
 Augusto Ferreira Martim,FC Lahti,3,0,0,0,165
 Belabid Amir,FC Lahti,3,0,0,0,83
 Beyai Mustafa,PK-35,3,0,0,0,133
-Chan Arop,HJK Klubi 04,3,0,0,0,192
+Chan Arop,HJK Klubi 04,3,0,0,0,194
 Collin Elias,TPS,3,0,0,0,202
 Efimov Stanislav,EIF,3,0,0,0,130
 Forsström Alexander,EIF,3,0,0,0,270
@@ -147,7 +147,7 @@ Hahl Hugo,JäPS,3,0,0,0,129
 Hakanpää Olli,TPS,3,0,0,0,270
 Hautamäki Elari,SJK Akatemia,3,0,0,0,183
 Heinonen Jan,SalPa,3,0,0,0,238
-Ingman Emil,HJK Klubi 04,3,0,0,0,195
+Ingman Emil,HJK Klubi 04,3,0,0,0,197
 Inkinen Topias,FC Lahti,3,0,0,0,270
 Kangaskokko Taavi,SJK Akatemia,3,0,0,0,91
 Konttas Valo,HJK Klubi 04,3,0,0,0,71
@@ -170,8 +170,8 @@ Rautiainen Otto,SalPa,3,0,0,0,210
 Räsänen Karo,PK-35,3,0,0,0,225
 Saarenkunnas Santeri,Jippo,3,0,0,0,21
 Tiainen Joona,FC Lahti,3,0,0,0,135
-Toivonen Ilmo,HJK Klubi 04,3,0,0,0,218
-Traore Aaron,HJK Klubi 04,3,0,0,0,127
+Toivonen Ilmo,HJK Klubi 04,3,0,0,0,217
+Traore Aaron,HJK Klubi 04,3,0,0,0,125
 Uchiyama Shunta,PK-35,3,0,0,0,207
 Valakari Toivo,KäPa,3,0,0,0,34
 Viljala Ville,PK-35,3,0,0,0,270
@@ -184,7 +184,7 @@ Haikonen Peetu,JäPS,4,0,0,0,230
 Heikkinen Daniel,FC Lahti,4,0,0,0,313
 Heikurinen Niilo,KäPa,4,0,0,0,304
 Huhtamäki Reko,KäPa,4,0,0,0,87
-Huovinen Joel,KäPa,4,0,0,0,343
+Huovinen Joel,KäPa,4,0,0,0,344
 Jama Omar,JäPS,4,0,0,0,360
 Jokiranta Viljami,FC Lahti,4,0,0,0,264
 Jouhi Adam,KäPa,4,0,0,0,318
