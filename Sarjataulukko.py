@@ -57,7 +57,7 @@ def scrape_league_table():
 if __name__ == "__main__":
     result = scrape_league_table()
     if result:
-        print(f"Tallennettu {len(result['teams']} joukkueen tiedot")
+        print(f"Tallennettu {len(result['teams'])} joukkueen tiedot")
         print("Tiedostot:")
         print("- Sarjataulukko.md (Markdown-muoto)")
         print("- Sarjataulukko.csv (CSV-muoto)")
