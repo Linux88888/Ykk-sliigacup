@@ -19,12 +19,12 @@ def fetch_match_stats(match_id):
             # 1. Navigoi sivulle
             url = f"https://tulospalvelu.palloliitto.fi/match/{match_id}/stats"
             print(f"🔄 Haetaan ottelua {match_id}...")
-            page.goto(url, wait_until="networkidle", timeout=90000)
+            page.goto(url, wait_until="domcontentloaded", timeout=60000)  # Odota DOM:n latautumista
             
-            # 2. Odota pääsisältöä
-            page.wait_for_selector('div.match-header', timeout=20000)
+            # 2. Odota pääsisältöä (pidempi timeout)
+            page.wait_for_selector('div.match-header', timeout=60000)
             
-            # 3. Kerää perustiedot uusilla valitsimilla
+            # 3. Kerää perustiedot
             date_element = page.query_selector('div.match-header >> text=/\\d+\\.\\d+\\.\\d+/')
             teams_element = page.query_selector('div.teams')
             score_element = page.query_selector('div.score')
@@ -38,7 +38,7 @@ def fetch_match_stats(match_id):
                 'warnings': []
             }
             
-            # 4. Kerää maalit (sovitaan uuden rakenteen mukaan)
+            # 4. Kerää maalit (jos saatavilla)
             goals_section = page.query_selector('div.goals-section')
             if goals_section:
                 for team_block in goals_section.query_selector_all('div.team-block'):
