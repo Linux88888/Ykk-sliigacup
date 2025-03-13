@@ -12,7 +12,14 @@ def scrape_league_table():
             url = "https://tulospalvelu.palloliitto.fi/category/M1L!spljp25/group/1/"
             page.goto(url, wait_until="networkidle", timeout=60000)
             
-            # Odota sarjataulukon latautumista
+            # Debug: Tulosta ja tallenna koko sivun HTML-sisältö, jotta näet mitä latautuu
+            html_content = page.content()
+            print("Sivun sisältö:")
+            print(html_content)
+            with open('Sivu.html', 'w', encoding='utf-8') as html_file:
+                html_file.write(html_content)
+            
+            # Odota, että taulukko latautuu
             page.wait_for_selector('table.standings-table', timeout=30000)
             
             # Kerää otsikkotiedot
