@@ -4,20 +4,14 @@ from datetime import datetime
 import os
 
 def fetch_match_stats(match_id):
-    # Määritä tiedostopolut GitHub Actionsia varten
+    # Määritä tiedostopolut
     base_dir = os.getcwd()
     md_path = os.path.join(base_dir, f"PelatutOttelut_{match_id}.md")
     csv_path = os.path.join(base_dir, f"PelatutOttelut_{match_id}.csv")
     
     with sync_playwright() as p:
-        # Konfiguroi selain botin väistämiseksi
-        browser = p.chromium.launch(
-            headless=True,
-            args=[
-                '--disable-blink-features=AutomationControlled',
-                '--no-sandbox'
-            ]
-        )
+        # Konfiguroi selain
+        browser = p.chromium.launch(headless=True)
         context = browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36..."
         )
@@ -29,14 +23,16 @@ def fetch_match_stats(match_id):
             print(f"🔄 Haetaan ottelua {match_id}...")
             page.goto(url, wait_until="networkidle", timeout=90000)
             
-            # 2. Debuggaa latautumisongelmia
-            page.wait_for_selector("table", state="attached", timeout=20000)
-            page.screenshot(path=f"debug_{match_id}.png")
+            # 2. Debug: Tallenna koko sivun HTML
+            html_content = page.content()
+            with open(f"debug_{match_id}.html", "w", encoding="utf-8") as f:
+                f.write(html_content)
+            print(f"📄 Sivun HTML tallennettu tiedostoon debug_{match_id}.html")
             
             # 3. Etsi taulukko uudella logiikalla
-            table = page.query_selector('table:has-text("Maalit")')  # Etsi taulukkoa avainsanoilla
+            table = page.query_selector('table')  # Yleinen taulukon valitsin
             if not table:
-                raise Exception("❌ Taulukkoa ei löytynyt - tarkista sivun rakenne")
+                raise Exception("❌ Taulukkoa ei löytynyt - tarkista debug_{match_id}.html")
             
             # 4. Kerää data
             headers = [th.inner_text().strip() for th in table.query_selector_all("thead th")]
@@ -65,9 +61,6 @@ def fetch_match_stats(match_id):
             
         except Exception as e:
             print(f"🔥 Kriittinen virhe: {str(e)}")
-            # Tallenna virheen sivu debuggausta varten
-            with open(f"error_{match_id}.html", "w", encoding="utf-8") as f:
-                f.write(page.content())
             return False
             
         finally:
