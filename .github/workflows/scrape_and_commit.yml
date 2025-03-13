@@ -3,7 +3,8 @@ name: Scrape Data
 on:
   schedule:
     - cron: '0 6,18 * * *'  # Ajaa klo 06:00 ja 18:00 UTC
-  workflow_dispatch: true  # Mahdollistaa manuaalisen käynnistyksen
+  workflow_dispatch: {}
+
 
 jobs:
   scrape:
