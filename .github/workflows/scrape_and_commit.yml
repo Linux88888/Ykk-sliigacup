@@ -1,49 +1,45 @@
-name: Scrape and Update
+name: Scrape Data
 
 on:
-  push:
-    branches: [ main ]
   schedule:
-    - cron: '0 */6 * * *'  # Ajaa 6 tunnin välein
+    - cron: '0 6,18 * * *'  # Ajaa klo 06:00 ja 18:00 UTC
+  workflow_dispatch: true  # Mahdollistaa manuaalisen käynnistyksen
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0  # Hakee koko git-historian
+      # 1. Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.8'
+      # 2. Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
 
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        playwright install chromium
+      # 3. Install dependencies
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium
 
-    - name: Run scraper
-      run: python scraper.py
+      # 4. Run Ottelu.py
+      - name: Scrape match data
+        run: python Ottelu.py
 
-    - name: Commit and Push
-      run: |
-        # Aseta Git-konfiguraatio
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-        
-        # Lisää kaikki muutokset ja tee commit
-        git add tulokset.csv timestamp.txt
-        git commit -m "Automatic data update [skip ci]" || echo "Ei muutoksia"
-        
-        # Päivitä lokaali repo ennen pushia
-        git pull --rebase origin main
-        
-        # Puske muutokset turvallisesti
-        git push origin main
-      env:
-        # Käytä GitHub tokenia oikeuksien hallintaan
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # 5. Run Sarjataulukko.py
+      - name: Scrape league table
+        run: python Sarjataulukko.py
+
+      # 6. Commit and push changes
+      - name: Commit and push
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add Ottelut.csv Sarjataulukko.md Sarjataulukko.csv
+          git commit -m "Automatic data update [skip ci]" || echo "Ei muutoksia"
+          git pull --rebase origin main
+          git push origin main
