@@ -29,32 +29,76 @@ def fetch_match_stats(match_id):
                 f.write(html_content)
             print(f"📄 Sivun HTML tallennettu tiedostoon debug_{match_id}.html")
             
-            # 3. Etsi taulukko uudella logiikalla
-            table = page.query_selector('table')  # Yleinen taulukon valitsin
-            if not table:
-                raise Exception("❌ Taulukkoa ei löytynyt - tarkista debug_{match_id}.html")
+            # 3. Kerää perustiedot
+            match_info = {
+                'match_id': match_id,
+                'date': page.query_selector('.match-date').inner_text().strip(),
+                'teams': page.query_selector('.match-teams').inner_text().strip(),
+                'score': page.query_selector('.match-score').inner_text().strip(),
+                'goals': [],
+                'warnings': []
+            }
             
-            # 4. Kerää data
-            headers = [th.inner_text().strip() for th in table.query_selector_all("thead th")]
-            rows = [
-                [td.inner_text().strip() for td in tr.query_selector_all("td")]
-                for tr in table.query_selector_all("tbody tr")
-            ]
+            # 4. Kerää maalit
+            goals_section = page.query_selector('div:has-text("Maalit")')
+            if goals_section:
+                for team_goals in goals_section.query_selector_all('div.team-goals'):
+                    team_name = team_goals.query_selector('h4').inner_text().strip()
+                    goals = [
+                        goal.inner_text().strip()
+                        for goal in team_goals.query_selector_all('ul li')
+                    ]
+                    match_info['goals'].append({team_name: goals})
             
-            # 5. Tallennus
+            # 5. Kerää varoitukset ja kentältäpoistot
+            warnings_section = page.query_selector('div:has-text("Varoitukset ja kentältäpoistot")')
+            if warnings_section:
+                for team_warnings in warnings_section.query_selector_all('div.team-warnings'):
+                    team_name = team_warnings.query_selector('h4').inner_text().strip()
+                    warnings = [
+                        warning.inner_text().strip()
+                        for warning in team_warnings.query_selector_all('ul li')
+                    ]
+                    match_info['warnings'].append({team_name: warnings})
+            
+            # 6. Tallennus Markdown-muotoon
             with open(md_path, "w", encoding="utf-8") as md_file:
                 md_file.write(f"# Ottelun {match_id} tilastot ({datetime.now().strftime('%d.%m.%Y %H:%M')})\n\n")
-                md_file.write("| " + " | ".join(headers) + " |\n")
-                md_file.write("|" + "|".join(["---"] * len(headers)) + "|\n")
-                for row in rows:
-                    md_file.write("| " + " | ".join(row) + " |\n")
+                md_file.write(f"**Päivämäärä:** {match_info['date']}\n")
+                md_file.write(f"**Joukkueet:** {match_info['teams']}\n")
+                md_file.write(f"**Tulos:** {match_info['score']}\n\n")
+                
+                md_file.write("## Maalit\n")
+                for team_goals in match_info['goals']:
+                    for team, goals in team_goals.items():
+                        md_file.write(f"### {team}\n")
+                        for goal in goals:
+                            md_file.write(f"- {goal}\n")
+                
+                md_file.write("\n## Varoitukset ja kentältäpoistot\n")
+                for team_warnings in match_info['warnings']:
+                    for team, warnings in team_warnings.items():
+                        md_file.write(f"### {team}\n")
+                        for warning in warnings:
+                            md_file.write(f"- {warning}\n")
             
+            # 7. Tallennus CSV-muotoon
             with open(csv_path, "w", newline="", encoding="utf-8") as csv_file:
                 writer = csv.writer(csv_file)
-                writer.writerow(headers)
-                writer.writerows(rows)
+                writer.writerow(["Match ID", "Päivämäärä", "Joukkueet", "Tulos", "Tyyppi", "Tieto"])
+                writer.writerow([match_id, match_info['date'], match_info['teams'], match_info['score'], "", ""])
+                
+                for team_goals in match_info['goals']:
+                    for team, goals in team_goals.items():
+                        for goal in goals:
+                            writer.writerow([match_id, "", "", "", "Maali", f"{team}: {goal}"])
+                
+                for team_warnings in match_info['warnings']:
+                    for team, warnings in team_warnings.items():
+                        for warning in warnings:
+                            writer.writerow([match_id, "", "", "", "Varoitus", f"{team}: {warning}"])
             
-            print(f"✅ Tallennettu {len(rows)} riviä tiedostoihin:")
+            print(f"✅ Tallennettu tiedot tiedostoihin:")
             print(f"📄 {md_path}")
             print(f"📊 {csv_path}")
             return True
