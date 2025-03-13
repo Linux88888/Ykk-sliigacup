@@ -4,69 +4,64 @@ from datetime import datetime
 
 def scrape_league_table():
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
+        # Alusta selain botin väistämisasetuksin
+        browser = p.chromium.launch(
+            headless=True,
+            args=['--disable-blink-features=AutomationControlled']
+        )
+        context = browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36..."
+        )
+        page = context.new_page()
         
         try:
-            # Navigoi sarjataulukon sivulle
+            # Navigoi sivulle
             url = "https://tulospalvelu.palloliitto.fi/category/M1L!spljp25/group/1/"
             page.goto(url, wait_until="networkidle", timeout=60000)
             
-            # Debug: Tulosta ja tallenna koko sivun HTML-sisältö, jotta näet mitä latautuu
+            # Odota taulukkoa eksplisiittisesti
+            page.wait_for_selector('table', state='attached', timeout=15000)
+            
+            # Debug: Tallenna HTML
             html_content = page.content()
-            print("Sivun sisältö:")
-            print(html_content)
-            with open('Sivu.html', 'w', encoding='utf-8') as html_file:
-                html_file.write(html_content)
+            with open('Sivu.html', 'w', encoding='utf-8') as f:
+                f.write(html_content)
             
-            # Odota, että taulukko latautuu
-            page.wait_for_selector('table.standings-table', timeout=30000)
+            # Kerää tiedot
+            headers = [th.inner_text().strip() for th in page.query_selector_all('table thead th')]
+            teams = [
+                [td.inner_text().strip() for td in row.query_selector_all('td')] 
+                for row in page.query_selector_all('table tbody tr')
+            ]
             
-            # Kerää otsikkotiedot
-            headers = [th.inner_text() for th in page.query_selector_all('table.standings-table thead th')]
+            # Debug-tulosteet
+            print("Löydetyt otsikot:", headers)
+            print("Löydetyt joukkueet:", len(teams))
             
-            # Kerää joukkueiden tiedot
-            teams = []
-            for row in page.query_selector_all('table.standings-table tbody tr'):
-                team_data = [td.inner_text().strip() for td in row.query_selector_all('td')]
-                teams.append(team_data)
-            
-            # Tallennus Markdown-muotoon
+            # Tallennus
             with open('Sarjataulukko.md', 'w', encoding='utf-8') as md_file:
-                # Otsikko
-                md_file.write(f"# Sarjataulukko ({datetime.now().strftime('%d.%m.%Y %H:%M')})\n\n")
-                
-                # Taulukko
+                md_file.write(f"# Sarjataulukko ({datetime.now().strftime('%d.%m.%Y %H:%M')}\n\n")
                 md_file.write("| " + " | ".join(headers) + " |\n")
-                md_file.write("|" + "|".join(["---"] * len(headers)) + "|\n")
+                md_file.write("|" + "|".join(["---"]*len(headers)) + "|\n")
                 for team in teams:
                     md_file.write("| " + " | ".join(team) + " |\n")
             
-            # Tallennus CSV-muotoon
             with open('Sarjataulukko.csv', 'w', newline='', encoding='utf-8') as csv_file:
                 writer = csv.writer(csv_file)
                 writer.writerow(headers)
                 writer.writerows(teams)
             
-            return {
-                'headers': headers,
-                'teams': teams,
-                'timestamp': datetime.now().isoformat()
-            }
+            return True
             
         except Exception as e:
-            print(f"Virhe: {str(e)}")
-            return None
+            print(f"Kriittinen virhe: {str(e)}")
+            return False
             
         finally:
             browser.close()
 
 if __name__ == "__main__":
-    result = scrape_league_table()
-    if result:
-        print(f"Tallennettu {len(result['teams'])} joukkueen tiedot")
-        print("Tiedostot:")
-        print("- Sarjataulukko.md (Markdown-muoto)")
-        print("- Sarjataulukko.csv (CSV-muoto)")
+    if scrape_league_table():
+        print("Päivitys onnistui!")
     else:
-        print("Tallennus epäonnistui")
+        print("Päivitys epäonnistui. Tarkista Sivu.html ja virheilmoitukset.")
