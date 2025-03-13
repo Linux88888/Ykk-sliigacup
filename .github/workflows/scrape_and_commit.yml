@@ -34,7 +34,11 @@ jobs:
       - name: Scrape league table
         run: python Sarjataulukko.py
 
-      # 6. Commit and push changes
+        # 6. Run PelatutOttelut.py
+        - name: Scrape Ottelut
+        run: python PelatutOttelut.py
+
+      # 7. Commit and push changes
       - name: Commit and push
         run: |
           git config --global user.name "GitHub Actions"
