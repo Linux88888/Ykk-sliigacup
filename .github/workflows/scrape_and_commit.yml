@@ -1,9 +1,9 @@
-name: Scrape and Update
+name: Scrape Data
 
 on:
   schedule:
     - cron: '0 6,18 * * *'  # Ajaa klo 06:00 ja 18:00 UTC
-  workflow_dispatch: {}
+  workflow_dispatch: true  # Mahdollistaa manuaalisen käynnistyksen
 
 jobs:
   scrape:
@@ -34,8 +34,8 @@ jobs:
       - name: Scrape league table
         run: python Sarjataulukko.py
 
-        # 6. Run PelatutOttelut.py
-        - name: Scrape Ottelut
+      # 6. Run PelatutOttelut.py
+      - name: Scrape played match stats
         run: python PelatutOttelut.py
 
       # 7. Commit and push changes
@@ -43,7 +43,7 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git add Ottelut.csv Sarjataulukko.md Sarjataulukko.csv
+          git add Ottelut.csv Sarjataulukko.md Sarjataulukko.csv PelatutOttelut.md PelatutOttelut.csv
           git commit -m "Automatic data update [skip ci]" || echo "Ei muutoksia"
           git pull --rebase origin main
           git push origin main
