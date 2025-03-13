@@ -1,4 +1,4 @@
-# Sarjataulukko (13.03.2025 14:35
+# Sarjataulukko (13.03.2025 14:51
 
 |  | # | Joukkue | O | V | T | H | M | P | 5 viim | Seuraava |
 |---|---|---|---|---|---|---|---|---|---|---|
