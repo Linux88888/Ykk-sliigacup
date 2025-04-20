@@ -1,0 +1,7 @@
+Scraper run at: 2025-04-20 13:21:01
+
+=== LEAGUE TABLE ===
+Failed to scrape league table
+
+=== FIXTURES ===
+Failed to scrape fixtures
