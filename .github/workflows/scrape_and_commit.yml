@@ -25,7 +25,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install requests beautifulsoup4 pandas numpy lxml
+        pip install pandas playwright asyncio
+        python -m playwright install chromium --with-deps
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         
     - name: Check internet connectivity
@@ -35,15 +36,17 @@ jobs:
         
     - name: Run scraper
       run: |
-        echo "Running scraper..."
+        echo "Running scraper with Playwright..."
         python scraper.py
         echo "Scraper completed"
         
-    - name: Debug file status
+    - name: Debug file outputs
       run: |
-        echo "CSV files:"
+        echo "Listing screenshot and HTML files:"
+        ls -la *.png *.html
+        echo "Listing CSV files:"
         ls -la *.csv
-        echo "Markdown files:"
+        echo "Listing Markdown files:"
         ls -la *.md
         
     - name: Configure Git
@@ -57,5 +60,6 @@ jobs:
         git add -A
         git status
         
+        # Always attempt to commit changes
         git commit -m "Automatic data update [skip ci]" || echo "No changes to commit"
         git push
