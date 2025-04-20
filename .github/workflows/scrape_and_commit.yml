@@ -25,11 +25,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install requests beautifulsoup4 pandas numpy lxml
+        pip install requests beautifulsoup4 pandas numpy lxml playwright
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        
-        # List installed packages for debugging
-        pip list
+        python -m playwright install chromium
         
     - name: Check internet connectivity
       run: |
@@ -46,9 +44,11 @@ jobs:
       run: |
         echo "Listing CSV files:"
         ls -la *.csv
-        echo "First 5 lines of tulokset.csv (if exists):"
         if [ -f tulokset.csv ]; then
+          echo "First 5 lines of tulokset.csv:"
           head -n 5 tulokset.csv
+          echo "CSV columns:"
+          head -n 1 tulokset.csv
         else
           echo "tulokset.csv does not exist!"
         fi
