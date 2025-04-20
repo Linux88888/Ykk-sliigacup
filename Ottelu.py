@@ -42,6 +42,26 @@ def scrape_match_stats(match_url):
         finally:
             browser.close()
 
+def get_fixtures():
+    # Hakee tulevat ottelut fixtures-osoitteessa ja palauttaa niiden ID:t
+    from playwright.sync_api import sync_playwright
+    fixtures_url = "https://tulospalvelu.palloliitto.fi/category/M1L!spljp25/group/1/fixtures"
+    match_urls = []
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        try:
+            page.goto(fixtures_url, wait_until="networkidle", timeout=60000)
+            # Oleta että otteluiden linkit löytyvät tietystä selectorista, esimerkki:
+            links = page.query_selector_all('a[href*="/match/"]')
+            for link in links:
+                href = link.get_attribute('href')
+                if href and "/match/" in href:
+                    match_urls.append("https://tulospalvelu.palloliitto.fi" + href)
+        finally:
+            browser.close()
+    return match_urls
+
 def save_to_csv(match_data, filename="Ottelut.csv"):
     if match_data:
         with open(filename, 'w', newline='', encoding='utf-8') as f:
@@ -66,9 +86,9 @@ def save_to_csv(match_data, filename="Ottelut.csv"):
         print("Ei tallennettavia tietoja")
 
 if __name__ == "__main__":
-    # Testaa yhdellä ottelulla
-    match_url = "https://tulospalvelu.palloliitto.fi/match/3738924/stats"
-    match_data = scrape_match_stats(match_url)
-    
-    if match_data:
-        save_to_csv(match_data)
+    # Hae kaikki tulevat ottelut ja käsittele ne
+    matches = get_fixtures()
+    for match_url in matches:
+        match_data = scrape_match_stats(match_url)
+        if match_data:
+            save_to_csv(match_data, filename=f"Ottelu_{match_data['match_id']}.csv")
