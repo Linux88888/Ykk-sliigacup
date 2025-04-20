@@ -15,8 +15,8 @@ def scrape_league_table():
         page = context.new_page()
         
         try:
-            # Navigoi sivulle
-            url = "https://tulospalvelu.palloliitto.fi/category/M1L!spljp25/group/1/"
+            # Päivitetty sarjataulukon osoite
+            url = "https://tulospalvelu.palloliitto.fi/category/M1L!spljp25/group/1"
             page.goto(url, wait_until="networkidle", timeout=60000)
             
             # Odota taulukkoa eksplisiittisesti
