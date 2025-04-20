@@ -1,71 +1,97 @@
-from playwright.sync_api import sync_playwright
-import csv
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
 from datetime import datetime
+import re
 import time
+import os
 
-def scrape_data():
-    with sync_playwright() as p:
-        # Alustetaan selain stealth-tilassa
-        browser = p.chromium.launch(
-            headless=True,
-            args=[
-                '--disable-blink-features=AutomationControlled',
-                '--no-sandbox'
-            ]
-        )
-        context = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            viewport={"width": 1920, "height": 1080}
-        )
-        page = context.new_page()
-
-        try:
-            # Navigoidaan sivustolle
-            page.goto("https://tulospalvelu.palloliitto.fi/category/M1LCUP!M1LCUP25/statistics/points", 
-                      wait_until="networkidle",
-                      timeout=60000)
-
-            # Odotetaan dynaamisen sisällön latautumista
-            page.wait_for_function(
-                """() => {
-                    const rows = document.querySelectorAll('table tr');
-                    return rows.length > 10;
-                }""",
-                timeout=30000
-            )
-
-            # Etsitään taulukko
-            table = page.wait_for_selector('div.v-data-table table', timeout=20000)
+def get_match_data():
+    url = "https://tulospalvelu.lentopalloliitto.fi/sarjat/2023-2024/ykl/"
+    
+    print(f"Fetching data from {url}...")
+    
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        print("Data fetched successfully")
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching data: {e}")
+        return None
+    
+    soup = BeautifulSoup(response.content, 'html.parser')
+    
+    # Etsi ottelutaulukko
+    ottelut_table = soup.find('table', class_='ottelutaulukko')
+    
+    if not ottelut_table:
+        print("Ottelutaulukkoa ei löytynyt.")
+        return None
+    
+    # Kerää ottelutiedot
+    ottelut = []
+    
+    for row in ottelut_table.find_all('tr')[1:]:  # Skip header row
+        cells = row.find_all('td')
+        if len(cells) >= 5:
+            pvm_text = cells[0].text.strip()
+            klo = cells[1].text.strip()
+            joukkueet = cells[2].text.strip()
+            tulos = cells[3].text.strip()
+            paikka = cells[4].text.strip()
             
-            # Kerätään tiedot
-            data = []
-            rows = table.query_selector_all('tbody tr')
-            for row in rows:
-                cells = row.query_selector_all('td')
-                if len(cells) >= 7:
-                    row_data = [cell.inner_text().strip() for cell in cells]
-                    data.append(row_data)
-                    print(f"Haettu: {row_data}")
-
-            # Tallennetaan CSV-tiedostoon
-            with open('tulokset.csv', 'w', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                writer.writerow(['Pelaaja', 'Joukkue', 'O', 'M', 'S', 'P', 'Min'])
-                writer.writerows(data)
-
-            # Päivitetään timestamp
-            with open('timestamp.txt', 'w') as f:
-                f.write(datetime.utcnow().isoformat())
-
-            print("Datan haku ja tallennus onnistui!")
-
-        except Exception as e:
-            print(f"Virhe: {str(e)}")
-            page.screenshot(path='error.png')
-            raise
-
-        finally:
-            browser.close()
+            # Erottele koti- ja vierasjoukkueet
+            if "-" in joukkueet:
+                koti, vieras = joukkueet.split("-", 1)
+                koti = koti.strip()
+                vieras = vieras.strip()
+            else:
+                koti = joukkueet
+                vieras = ""
+            
+            # Erottele tulokset
+            kotitulos = ""
+            vierastulos = ""
+            if tulos and "-" in tulos:
+                tulos_parts = tulos.split("-")
+                if len(tulos_parts) >= 2:
+                    kotitulos = tulos_parts[0].strip()
+                    vierastulos = tulos_parts[1].strip()
+            
+            ottelut.append({
+                'Pelipäivä': pvm_text,
+                'Klo': klo,
+                'Koti': koti,
+                'Vieras': vieras,
+                'Kotitulos': kotitulos,
+                'Vierastulos': vierastulos,
+                'Paikka': paikka
+            })
+    
+    print(f"Found {len(ottelut)} matches")
+    
+    # Tallenna data
+    df = pd.DataFrame(ottelut)
+    df.to_csv('tulokset.csv', index=False, encoding='utf-8')
+    print(f"Saved match data to tulokset.csv")
+    
+    # Tallenna aikaleima
+    with open('timestamp.txt', 'w') as f:
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        f.write(timestamp)
+        print(f"Updated timestamp: {timestamp}")
+    
+    return df
 
 if __name__ == "__main__":
-    scrape_data()
+    print("Starting scraper...")
+    match_data = get_match_data()
+    
+    if match_data is not None:
+        print(f"Successfully retrieved {len(match_data)} matches.")
+        # Force file modification time update
+        for filename in ['tulokset.csv', 'timestamp.txt']:
+            if os.path.exists(filename):
+                os.utime(filename, None)
+    else:
+        print("Failed to retrieve match data.")
