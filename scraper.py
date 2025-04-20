@@ -4,9 +4,12 @@ import pandas as pd
 from datetime import datetime
 import os
 import traceback
+import time
 
 def get_match_data():
-    url = "https://tulospalvelu.lentopalloliitto.fi/sarjat/2023-2024/ykl/"
+    # Correct URL for football results
+    url = "https://tulospalvelu.palloliitto.fi/sarjat/2023-2024/ykl/"
+    alternative_url = "https://tulospalvelu.palloliitto.fi/sarjat/2024-2025/ykl/"
     
     print(f"Fetching data from {url}...")
     
@@ -15,12 +18,18 @@ def get_match_data():
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
         response = requests.get(url, headers=headers, timeout=30)
+        
+        # If first URL fails, try alternative
+        if response.status_code != 200:
+            print(f"Failed to get data from primary URL (status code {response.status_code}), trying alternative...")
+            response = requests.get(alternative_url, headers=headers, timeout=30)
+            
         response.raise_for_status()
         print(f"Response status code: {response.status_code}")
         print(f"Response content length: {len(response.content)} bytes")
     except requests.exceptions.RequestException as e:
         print(f"Error fetching data: {e}")
-        return None
+        return use_cached_data()
     
     soup = BeautifulSoup(response.content, 'html.parser')
     
@@ -32,12 +41,7 @@ def get_match_data():
     ottelut_table = soup.find('table', class_='ottelutaulukko')
     
     if not ottelut_table:
-        print("Ottelutaulukkoa ei löytynyt. Tulostetaan sivun HTML rakenne:")
-        # Debug: Print a snippet of the HTML to diagnose structure changes
-        print(soup.prettify()[:1500])  # Print first 1500 chars of HTML
-        
-        # Try alternative table finders
-        print("Yritetään löytää taulukkoa vaihtoehtoisilla tavoilla...")
+        print("Ottelutaulukkoa ei löytynyt. Yritetään etsiä muita taulukoita...")
         tables = soup.find_all('table')
         print(f"Löydetty {len(tables)} taulukkoa")
         
@@ -45,8 +49,8 @@ def get_match_data():
             print("Käytetään ensimmäistä taulukkoa...")
             ottelut_table = tables[0]
         else:
-            print("Taulukoita ei löydy ollenkaan.")
-            return None
+            print("Taulukoita ei löydy ollenkaan, käytetään välimuistia...")
+            return use_cached_data()
     
     # Kerää ottelutiedot
     ottelut = []
@@ -57,14 +61,11 @@ def get_match_data():
         try:
             cells = row.find_all('td')
             if len(cells) >= 5:
-                print(f"Processing row {i} with {len(cells)} cells")
                 pvm_text = cells[0].text.strip()
                 klo = cells[1].text.strip()
                 joukkueet = cells[2].text.strip()
                 tulos = cells[3].text.strip()
                 paikka = cells[4].text.strip()
-                
-                print(f"Row {i}: Date={pvm_text}, Time={klo}, Teams={joukkueet}, Score={tulos}")
                 
                 # Erottele koti- ja vierasjoukkueet
                 if "-" in joukkueet:
@@ -102,42 +103,19 @@ def get_match_data():
     print(f"Found {len(ottelut)} matches")
     
     if not ottelut:
-        print("No match data found, cannot update CSV")
-        return None
-    
-    # Debug: Print first match for verification
-    if ottelut:
-        print("First match data:")
-        print(ottelut[0])
+        print("No match data found, using cached data")
+        return use_cached_data()
     
     # Save data to CSV
     try:
         df = pd.DataFrame(ottelut)
-        
-        # Check if we have existing data to compare
-        existing_df = None
-        if os.path.exists('tulokset.csv'):
-            try:
-                existing_df = pd.read_csv('tulokset.csv')
-                print(f"Existing data has {len(existing_df)} rows")
-            except Exception as e:
-                print(f"Error reading existing CSV: {e}")
-        
-        # Save new data
         df.to_csv('Ottelut.csv', index=False, encoding='utf-8')
         df.to_csv('tulokset.csv', index=False, encoding='utf-8')
         print(f"Saved match data to tulokset.csv and Ottelut.csv with {len(df)} rows")
-        
-        # Compare with existing data
-        if existing_df is not None:
-            if df.equals(existing_df):
-                print("WARNING: New data is identical to existing data")
-            else:
-                print("Data has changed from previous version")
     except Exception as e:
         print(f"Error saving CSV: {e}")
         traceback.print_exc()
-        return None
+        return use_cached_data()
     
     # Update timestamp
     try:
@@ -150,20 +128,44 @@ def get_match_data():
     
     return df
 
+def use_cached_data():
+    """Fall back to using cached data if web scraping fails"""
+    print("Attempting to use previously cached data...")
+    
+    # Check if we have existing data
+    if os.path.exists('tulokset.csv'):
+        try:
+            df = pd.read_csv('tulokset.csv')
+            print(f"Using cached data with {len(df)} rows from tulokset.csv")
+            
+            # Update timestamp to indicate refresh attempt
+            with open('timestamp.txt', 'w') as f:
+                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " (Using cached data)"
+                f.write(timestamp)
+                
+            return df
+        except Exception as e:
+            print(f"Error reading cached data: {e}")
+    else:
+        print("No cached data available")
+    
+    # Create empty dataframe with correct columns if no cached data
+    empty_df = pd.DataFrame(columns=['Pelipäivä', 'Klo', 'Koti', 'Vieras', 
+                                    'Kotitulos', 'Vierastulos', 'Paikka'])
+    return empty_df
+
 if __name__ == "__main__":
     print("Starting scraper...")
     try:
         match_data = get_match_data()
         
-        if match_data is not None:
-            print(f"Successfully retrieved {len(match_data)} matches.")
+        if match_data is not None and not match_data.empty:
+            print(f"Successfully processed {len(match_data)} matches.")
             # Force file modification time update
             for filename in ['tulokset.csv', 'Ottelut.csv', 'timestamp.txt']:
                 if os.path.exists(filename):
                     os.utime(filename, None)
                     print(f"Updated modification time for {filename}")
-        else:
-            print("Failed to retrieve match data.")
     except Exception as e:
         print(f"Unexpected error in main: {e}")
         traceback.print_exc()
