@@ -1,4 +1,4 @@
-# Sarjataulukko (20.04.2025 08:40
+# Sarjataulukko (20.04.2025 12:18
 
 |  | # | Joukkue | O | V | T | H | M | P | 5 viim | Seuraava |
 |---|---|---|---|---|---|---|---|---|---|---|
