@@ -9,18 +9,17 @@ def get_fixtures():
         page = browser.new_page()
         try:
             page.goto(fixtures_url, wait_until="networkidle", timeout=60000)
-            # Etsi kaikki ottelulinkit (tarkista selector tarvittaessa selaimella!)
             links = page.query_selector_all('a[href*="/match/"]')
             for link in links:
                 href = link.get_attribute('href')
                 if href and "/match/" in href:
-                    # Rakennetaan täysi URL
                     if href.startswith("/"):
                         match_urls.append("https://tulospalvelu.palloliitto.fi" + href)
                     else:
                         match_urls.append("https://tulospalvelu.palloliitto.fi/" + href)
         finally:
             browser.close()
+    print(f"DEBUG: Löytyi {len(match_urls)} tulevaa ottelua.")
     return match_urls
 
 def scrape_match_info(match_url):
@@ -29,7 +28,6 @@ def scrape_match_info(match_url):
         page = browser.new_page()
         try:
             page.goto(match_url, wait_until="networkidle", timeout=60000)
-            # Odota että perustiedot löytyvät
             page.wait_for_selector('.match-header', timeout=30000)
             date = page.query_selector('.match-date')
             teams = page.query_selector('.match-teams')
@@ -46,17 +44,17 @@ def scrape_match_info(match_url):
         finally:
             browser.close()
 
-def save_all_fixtures_csv(matches, filename="TulevatOttelut.csv"):
+def save_all_fixtures_csv(matches, filename="Ottelut.csv"):
     with open(filename, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["URL", "Päivämäärä", "Joukkueet", "Tulos"])
         for match in matches:
             if match:
                 writer.writerow([match["url"], match["date"], match["teams"], match["score"]])
+    print(f"DEBUG: Kirjoitettu {len(matches)} ottelua tiedostoon {filename}")
 
 if __name__ == "__main__":
     match_urls = get_fixtures()
-    print(f"Löytyi {len(match_urls)} tulevaa ottelua.")
     all_matches = []
     for url in match_urls:
         print(f"Käsitellään: {url}")
@@ -64,4 +62,3 @@ if __name__ == "__main__":
         if info:
             all_matches.append(info)
     save_all_fixtures_csv(all_matches)
-    print("Tulevat ottelut tallennettu tiedostoon TulevatOttelut.csv")
