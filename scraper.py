@@ -5,13 +5,13 @@ from datetime import datetime
 import os
 import traceback
 import time
+import re
 
-def get_match_data():
-    # Correct URL for football results
-    url = "https://tulospalvelu.palloliitto.fi/sarjat/2023-2024/ykl/"
-    alternative_url = "https://tulospalvelu.palloliitto.fi/sarjat/2024-2025/ykl/"
+def get_player_stats():
+    """Get player statistics from palloliitto.fi"""
+    url = "https://tulospalvelu.palloliitto.fi/sarjat/tilastot/2024"
     
-    print(f"Fetching data from {url}...")
+    print(f"Fetching player statistics from {url}...")
     
     try:
         headers = {
@@ -19,17 +19,12 @@ def get_match_data():
         }
         response = requests.get(url, headers=headers, timeout=30)
         
-        # If first URL fails, try alternative
-        if response.status_code != 200:
-            print(f"Failed to get data from primary URL (status code {response.status_code}), trying alternative...")
-            response = requests.get(alternative_url, headers=headers, timeout=30)
-            
         response.raise_for_status()
         print(f"Response status code: {response.status_code}")
         print(f"Response content length: {len(response.content)} bytes")
     except requests.exceptions.RequestException as e:
         print(f"Error fetching data: {e}")
-        return use_cached_data()
+        return None
     
     soup = BeautifulSoup(response.content, 'html.parser')
     
@@ -37,135 +32,96 @@ def get_match_data():
     page_title = soup.title.text if soup.title else "No title found"
     print(f"Page title: {page_title}")
     
-    # Etsi ottelutaulukko
-    ottelut_table = soup.find('table', class_='ottelutaulukko')
+    # Find tables in the page
+    tables = soup.find_all('table')
+    print(f"Found {len(tables)} tables on the page")
     
-    if not ottelut_table:
-        print("Ottelutaulukkoa ei löytynyt. Yritetään etsiä muita taulukoita...")
-        tables = soup.find_all('table')
-        print(f"Löydetty {len(tables)} taulukkoa")
+    if not tables:
+        print("No tables found on the page. Printing page structure:")
+        print(soup.prettify()[:1500])  # Print the first 1500 characters of HTML
+        return None
+    
+    # Try to find the player statistics table
+    player_stats = []
+    
+    # Try each table
+    for i, table in enumerate(tables):
+        print(f"Examining table {i+1}...")
         
-        if tables:
-            print("Käytetään ensimmäistä taulukkoa...")
-            ottelut_table = tables[0]
-        else:
-            print("Taulukoita ei löydy ollenkaan, käytetään välimuistia...")
-            return use_cached_data()
+        # Check if this looks like a player stats table
+        headers = [th.text.strip() for th in table.find_all('th')]
+        print(f"Table {i+1} headers: {headers}")
+        
+        if len(headers) >= 5:  # A reasonable player stats table should have several columns
+            rows = table.find_all('tr')[1:]  # Skip header row
+            print(f"Found {len(rows)} data rows in table {i+1}")
+            
+            for row in rows:
+                cells = row.find_all('td')
+                if len(cells) >= 5:
+                    player_data = {}
+                    
+                    # Attempt to extract values based on position
+                    # This is a best-effort approach and might need adjustments
+                    if len(cells) >= 1:
+                        player_data['Pelaaja'] = cells[0].text.strip()
+                    if len(cells) >= 2:
+                        player_data['Joukkue'] = cells[1].text.strip()
+                    if len(cells) >= 3:
+                        player_data['O'] = cells[2].text.strip()
+                    if len(cells) >= 4:
+                        player_data['M'] = cells[3].text.strip()
+                    if len(cells) >= 5:
+                        player_data['S'] = cells[4].text.strip()
+                    if len(cells) >= 6:
+                        player_data['P'] = cells[5].text.strip()
+                    if len(cells) >= 7:
+                        player_data['Min'] = cells[6].text.strip()
+                    
+                    player_stats.append(player_data)
+            
+            if player_stats:
+                print(f"Successfully extracted {len(player_stats)} player statistics from table {i+1}")
+                break  # Stop after finding a table with data
     
-    # Kerää ottelutiedot
-    ottelut = []
-    rows = ottelut_table.find_all('tr')
-    print(f"Found {len(rows)} rows in table")
+    if not player_stats:
+        print("Could not extract player statistics from any table")
+        return None
     
-    for i, row in enumerate(rows[1:], 1):  # Skip header row
-        try:
-            cells = row.find_all('td')
-            if len(cells) >= 5:
-                pvm_text = cells[0].text.strip()
-                klo = cells[1].text.strip()
-                joukkueet = cells[2].text.strip()
-                tulos = cells[3].text.strip()
-                paikka = cells[4].text.strip()
-                
-                # Erottele koti- ja vierasjoukkueet
-                if "-" in joukkueet:
-                    koti, vieras = joukkueet.split("-", 1)
-                    koti = koti.strip()
-                    vieras = vieras.strip()
-                else:
-                    koti = joukkueet
-                    vieras = ""
-                
-                # Erottele tulokset
-                kotitulos = ""
-                vierastulos = ""
-                if tulos and "-" in tulos:
-                    tulos_parts = tulos.split("-")
-                    if len(tulos_parts) >= 2:
-                        kotitulos = tulos_parts[0].strip()
-                        vierastulos = tulos_parts[1].strip()
-                
-                ottelut.append({
-                    'Pelipäivä': pvm_text,
-                    'Klo': klo,
-                    'Koti': koti,
-                    'Vieras': vieras,
-                    'Kotitulos': kotitulos,
-                    'Vierastulos': vierastulos,
-                    'Paikka': paikka
-                })
-            else:
-                print(f"Skipping row {i}: not enough cells ({len(cells)})")
-        except Exception as e:
-            print(f"Error processing row {i}: {e}")
-            traceback.print_exc()
+    # Create DataFrame and save to CSV
+    df = pd.DataFrame(player_stats)
     
-    print(f"Found {len(ottelut)} matches")
+    # Convert numeric columns
+    for col in ['O', 'M', 'S', 'P', 'Min']:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
     
-    if not ottelut:
-        print("No match data found, using cached data")
-        return use_cached_data()
-    
-    # Save data to CSV
-    try:
-        df = pd.DataFrame(ottelut)
-        df.to_csv('Ottelut.csv', index=False, encoding='utf-8')
-        df.to_csv('tulokset.csv', index=False, encoding='utf-8')
-        print(f"Saved match data to tulokset.csv and Ottelut.csv with {len(df)} rows")
-    except Exception as e:
-        print(f"Error saving CSV: {e}")
-        traceback.print_exc()
-        return use_cached_data()
+    # Save data
+    df.to_csv('tulokset.csv', index=False, encoding='utf-8')
+    print(f"Saved {len(df)} player statistics to tulokset.csv")
     
     # Update timestamp
-    try:
+    with open('timestamp.txt', 'w') as f:
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        with open('timestamp.txt', 'w') as f:
-            f.write(timestamp)
+        f.write(timestamp)
         print(f"Updated timestamp: {timestamp}")
-    except Exception as e:
-        print(f"Error updating timestamp: {e}")
     
     return df
-
-def use_cached_data():
-    """Fall back to using cached data if web scraping fails"""
-    print("Attempting to use previously cached data...")
-    
-    # Check if we have existing data
-    if os.path.exists('tulokset.csv'):
-        try:
-            df = pd.read_csv('tulokset.csv')
-            print(f"Using cached data with {len(df)} rows from tulokset.csv")
-            
-            # Update timestamp to indicate refresh attempt
-            with open('timestamp.txt', 'w') as f:
-                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " (Using cached data)"
-                f.write(timestamp)
-                
-            return df
-        except Exception as e:
-            print(f"Error reading cached data: {e}")
-    else:
-        print("No cached data available")
-    
-    # Create empty dataframe with correct columns if no cached data
-    empty_df = pd.DataFrame(columns=['Pelipäivä', 'Klo', 'Koti', 'Vieras', 
-                                    'Kotitulos', 'Vierastulos', 'Paikka'])
-    return empty_df
 
 if __name__ == "__main__":
     print("Starting scraper...")
     try:
-        match_data = get_match_data()
+        stats_data = get_player_stats()
         
-        if match_data is not None and not match_data.empty:
-            print(f"Successfully processed {len(match_data)} matches.")
+        if stats_data is not None:
+            print(f"Successfully retrieved {len(stats_data)} player statistics.")
             # Force file modification time update
-            for filename in ['tulokset.csv', 'Ottelut.csv', 'timestamp.txt']:
+            for filename in ['tulokset.csv', 'timestamp.txt']:
                 if os.path.exists(filename):
                     os.utime(filename, None)
                     print(f"Updated modification time for {filename}")
+        else:
+            print("Failed to retrieve player statistics.")
     except Exception as e:
         print(f"Unexpected error in main: {e}")
         traceback.print_exc()
