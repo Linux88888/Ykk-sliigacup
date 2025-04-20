@@ -25,45 +25,26 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install requests beautifulsoup4 pandas numpy lxml playwright
+        pip install requests beautifulsoup4 pandas numpy lxml
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        python -m playwright install chromium
         
     - name: Check internet connectivity
       run: |
         echo "Testing internet connectivity..."
         curl -I https://tulospalvelu.palloliitto.fi/
         
-    - name: Run scraper with debug
+    - name: Run scraper
       run: |
         echo "Running scraper..."
         python scraper.py
         echo "Scraper completed"
         
-    - name: View CSV files
-      run: |
-        echo "Listing CSV files:"
-        ls -la *.csv
-        if [ -f tulokset.csv ]; then
-          echo "First 5 lines of tulokset.csv:"
-          head -n 5 tulokset.csv
-          echo "CSV columns:"
-          head -n 1 tulokset.csv
-        else
-          echo "tulokset.csv does not exist!"
-        fi
-        
-    - name: Process data
-      run: |
-        echo "Processing data..."
-        python PelatutOttelut.py
-        python Sarjataulukko.py
-        echo "Data processing completed"
-        
     - name: Debug file status
       run: |
-        echo "File status after processing:"
-        ls -la *.csv *.md
+        echo "CSV files:"
+        ls -la *.csv
+        echo "Markdown files:"
+        ls -la *.md
         
     - name: Configure Git
       run: |
@@ -74,12 +55,7 @@ jobs:
       run: |
         echo "Checking for changes to commit..."
         git add -A
-        timestamp=$(date -u)
-        echo "$timestamp" > timestamp.txt
-        git add timestamp.txt
-        
         git status
-        git diff --cached --stat
         
         git commit -m "Automatic data update [skip ci]" || echo "No changes to commit"
         git push
