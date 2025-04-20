@@ -1,110 +1,75 @@
-import requests
-from bs4 import BeautifulSoup
+import asyncio
+from playwright.async_api import async_playwright
 import pandas as pd
 from datetime import datetime
 import os
 import traceback
 import json
 
-def save_html_snapshot(html, filename):
-    """Save HTML snapshot for debugging"""
+async def save_screenshot(page, filename):
+    """Save a screenshot of the page"""
+    await page.screenshot(path=f"{filename}.png", full_page=True)
+    print(f"Saved screenshot to {filename}.png")
+
+async def save_html(page, filename):
+    """Save the HTML content of the page"""
+    html = await page.content()
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(html)
-    print(f"Saved HTML snapshot to {filename}")
+    print(f"Saved HTML to {filename}")
+    return html
 
-def fetch_url(url, filename_prefix):
-    """Fetch URL with detailed logging and save HTML snapshot"""
-    print(f"\n{'=' * 50}")
-    print(f"FETCHING: {url}")
-    print(f"{'=' * 50}")
+async def get_league_table():
+    """Get the league table using Playwright"""
+    print("\n=== FETCHING LEAGUE TABLE ===")
     
-    try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Accept-Language': 'fi-FI,fi;q=0.9,en-US;q=0.8,en;q=0.7',
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-        }
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        page = await browser.new_page()
         
-        # Make the request with a timeout
-        response = requests.get(url, headers=headers, timeout=30)
+        # Set viewport size
+        await page.set_viewport_size({"width": 1280, "height": 800})
         
-        # Log response details
-        print(f"Response status code: {response.status_code}")
-        print(f"Response content length: {len(response.content)} bytes")
-        print(f"Response content type: {response.headers.get('Content-Type', 'unknown')}")
+        # Navigate to the league table page
+        url = "https://tulospalvelu.palloliitto.fi/category/M1L!spljp25/group/1/"
+        print(f"Loading URL: {url}")
         
-        # Check if response is successful
-        if response.status_code != 200:
-            print(f"ERROR: Failed to fetch {url}, status code {response.status_code}")
-            return None
+        try:
+            # Navigate with a timeout of 60 seconds
+            await page.goto(url, timeout=60000)
             
-        # Save HTML snapshot for debugging
-        html_filename = f"{filename_prefix}_snapshot.html"
-        save_html_snapshot(response.text, html_filename)
-        
-        # Parse HTML
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
-        # Log page title
-        page_title = soup.title.text.strip() if soup.title else "No title found"
-        print(f"Page title: {page_title}")
-        
-        return soup
-    except Exception as e:
-        print(f"ERROR fetching {url}: {e}")
-        traceback.print_exc()
-        return None
-
-def get_league_table():
-    """Get league standings table"""
-    # Important: Using direct URL for Ykkönen league standings
-    url = "https://tulospalvelu.palloliitto.fi/category/M1L!spljp25/group/1/"
-    
-    soup = fetch_url(url, "league_table")
-    if not soup:
-        return None
-    
-    # Find all tables
-    tables = soup.find_all('table')
-    print(f"Found {len(tables)} tables on the league page")
-    
-    # Create a file with all tables for debugging
-    with open("league_all_tables.txt", "w", encoding="utf-8") as f:
-        for i, table in enumerate(tables):
-            f.write(f"\n=== TABLE {i+1} ===\n")
-            headers = [th.text.strip() for th in table.find_all('th')]
-            f.write(f"Headers: {headers}\n")
+            # Wait for the page to load completely
+            await page.wait_for_load_state("networkidle")
             
-            rows = table.find_all('tr')
-            f.write(f"Row count: {len(rows)}\n")
+            print("Page loaded successfully")
             
-            # Print first two rows for sample
-            for j, row in enumerate(rows[:2]):
-                if j == 0:
-                    continue  # Skip header row in sample
-                cells = [td.text.strip() for td in row.find_all('td')]
-                f.write(f"Sample row: {cells}\n")
-    
-    # Find the league table - usually the first table with team standings
-    league_table = []
-    table_found = False
-    
-    for table_index, table in enumerate(tables):
-        print(f"\nExamining table {table_index+1}...")
-        
-        # Get headers
-        headers = [th.text.strip() for th in table.find_all('th')]
-        print(f"Table {table_index+1} headers: {headers}")
-        
-        # Check if this looks like a standings table (has common headers like position, team, points)
-        if any(header in headers for header in ['#', 'Team', 'P', 'PTS', 'Joukkue', 'Sija']):
-            print(f"Table {table_index+1} appears to be the standings table")
+            # Save screenshot and HTML for debugging
+            await save_screenshot(page, "league_table_screenshot")
+            html = await save_html(page, "league_table.html")
             
-            rows = table.find_all('tr')
-            print(f"Found {len(rows)} rows in table {table_index+1}")
+            # Find all tables on the page
+            tables = await page.query_selector_all('table')
+            print(f"Found {len(tables)} tables on the page")
             
-            # Create header mapping
+            if not tables:
+                print("No tables found on the page!")
+                await browser.close()
+                return None
+            
+            # Process the first table (usually the standings table)
+            league_table = []
+            
+            # Extract the table content
+            table_html = await tables[0].inner_html()
+            with open("league_table_content.html", "w", encoding="utf-8") as f:
+                f.write(table_html)
+            
+            # Get headers
+            headers = await page.eval_on_selector_all('table:first-of-type th', 
+                                                    'elements => elements.map(e => e.textContent.trim())')
+            print(f"Headers: {headers}")
+            
+            # Map headers to our standardized column names
             header_mapping = {}
             for i, header in enumerate(headers):
                 if header == '#' or header == 'Sija':
@@ -132,116 +97,120 @@ def get_league_table():
             
             print(f"Header mapping: {header_mapping}")
             
-            # Process each data row
-            for row in rows[1:]:  # Skip header row
-                cells = row.find_all('td')
+            # Get all rows (skip header row)
+            rows = await page.query_selector_all('table:first-of-type tr:not(:first-child)')
+            print(f"Found {len(rows)} data rows")
+            
+            for row in rows:
+                cells = await row.query_selector_all('td')
                 
                 if len(cells) >= len(headers):
                     team_data = {}
                     
-                    # Extract data using our header mapping
                     for i, cell in enumerate(cells):
                         if i in header_mapping:
-                            # For team name, extract text but also check for team image
+                            # For team names, extract the text but also check for images with alt text
                             if header_mapping[i] == 'Joukkue':
-                                team_name = cell.text.strip()
-                                team_img = cell.find('img')
-                                if team_img and team_img.get('alt'):
-                                    team_name = team_img.get('alt').strip()
-                                team_data[header_mapping[i]] = team_name
+                                team_name = await cell.text_content()
+                                team_img = await cell.query_selector('img')
+                                if team_img:
+                                    alt_text = await team_img.get_attribute('alt')
+                                    if alt_text:
+                                        team_name = alt_text
+                                team_data[header_mapping[i]] = team_name.strip()
                             else:
-                                team_data[header_mapping[i]] = cell.text.strip()
+                                cell_text = await cell.text_content()
+                                team_data[header_mapping[i]] = cell_text.strip()
                     
                     league_table.append(team_data)
             
-            table_found = True
-            break  # Stop after finding the standings table
-    
-    if not league_table or not table_found:
-        print("WARNING: Could not find a valid standings table!")
-        return None
-    
-    print(f"Extracted {len(league_table)} teams")
-    
-    # Print first team for verification
-    if league_table:
-        print(f"Sample team data: {league_table[0]}")
-    
-    # Convert to DataFrame
-    df = pd.DataFrame(league_table)
-    
-    print(f"Standings columns: {df.columns.tolist()}")
-    
-    # Save both as CSV and JSON for better debugging
-    df.to_csv('Sarjataulukko.csv', index=False, encoding='utf-8')
-    
-    # Also save as JSON for easier inspection
-    with open('Sarjataulukko.json', 'w', encoding='utf-8') as f:
-        json.dump(league_table, f, ensure_ascii=False, indent=2)
-    
-    print(f"Saved standings with {len(df)} teams to Sarjataulukko.csv and Sarjataulukko.json")
-    
-    # Create Markdown
-    create_league_table_markdown(df)
-    
-    return df
+            print(f"Extracted {len(league_table)} teams")
+            
+            # Print first team for verification
+            if league_table:
+                print(f"Sample team data: {league_table[0]}")
+            
+            # Convert to DataFrame
+            df = pd.DataFrame(league_table)
+            
+            # Save data
+            df.to_csv('Sarjataulukko.csv', index=False, encoding='utf-8')
+            with open('Sarjataulukko.json', 'w', encoding='utf-8') as f:
+                json.dump(league_table, f, ensure_ascii=False, indent=2)
+            
+            # Create Markdown
+            create_league_table_markdown(df)
+            
+            await browser.close()
+            return df
+            
+        except Exception as e:
+            print(f"Error fetching league table: {e}")
+            traceback.print_exc()
+            
+            # Save error screenshot
+            await save_screenshot(page, "league_table_error")
+            
+            await browser.close()
+            return None
 
-def get_fixtures():
-    """Get fixtures (matches)"""
-    # Direct URL for fixtures
-    url = "https://tulospalvelu.palloliitto.fi/category/M1L!spljp25/group/1/fixtures"
+async def get_fixtures():
+    """Get fixtures using Playwright"""
+    print("\n=== FETCHING FIXTURES ===")
     
-    soup = fetch_url(url, "fixtures")
-    if not soup:
-        return None
-    
-    # Find all tables
-    tables = soup.find_all('table')
-    print(f"Found {len(tables)} tables on the fixtures page")
-    
-    # Save all tables content for debugging
-    with open("fixtures_all_tables.txt", "w", encoding="utf-8") as f:
-        for i, table in enumerate(tables):
-            f.write(f"\n=== TABLE {i+1} ===\n")
-            headers = [th.text.strip() for th in table.find_all('th')]
-            f.write(f"Headers: {headers}\n")
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        page = await browser.new_page()
+        
+        # Set viewport size
+        await page.set_viewport_size({"width": 1280, "height": 800})
+        
+        # Navigate to the fixtures page
+        url = "https://tulospalvelu.palloliitto.fi/category/M1L!spljp25/group/1/fixtures"
+        print(f"Loading URL: {url}")
+        
+        try:
+            # Navigate with a timeout of 60 seconds
+            await page.goto(url, timeout=60000)
             
-            rows = table.find_all('tr')
-            f.write(f"Row count: {len(rows)}\n")
+            # Wait for the page to load completely
+            await page.wait_for_load_state("networkidle")
             
-            # Print first two rows for sample
-            for j, row in enumerate(rows[:3]):
-                cells = [td.text.strip() for td in row.find_all('td')]
-                f.write(f"Row {j}: {cells}\n")
-    
-    fixtures = []
-    table_found = False
-    
-    # Go through each table looking for match data
-    for table_index, table in enumerate(tables):
-        print(f"\nExamining table {table_index+1} for fixtures...")
-        
-        rows = table.find_all('tr')
-        if len(rows) <= 1:  # Skip tables with just headers or empty
-            continue
-        
-        # Get headers if available
-        headers = []
-        header_row = rows[0].find_all('th')
-        if header_row:
-            headers = [th.text.strip() for th in header_row]
-            print(f"Table {table_index+1} headers: {headers}")
-        
-        # Check if this looks like a fixtures table
-        # Look for date and team columns
-        date_col = -1
-        teams_col = -1
-        time_col = -1
-        result_col = -1
-        venue_col = -1
-        
-        # Try to identify column positions based on headers
-        if headers:
+            print("Page loaded successfully")
+            
+            # Save screenshot and HTML for debugging
+            await save_screenshot(page, "fixtures_screenshot")
+            html = await save_html(page, "fixtures.html")
+            
+            # Find all tables on the page
+            tables = await page.query_selector_all('table')
+            print(f"Found {len(tables)} tables on the page")
+            
+            if not tables:
+                print("No tables found on the page!")
+                await browser.close()
+                return None
+            
+            # Process the first table (usually the fixtures table)
+            fixtures = []
+            
+            # Extract the table content
+            table_html = await tables[0].inner_html()
+            with open("fixtures_table_content.html", "w", encoding="utf-8") as f:
+                f.write(table_html)
+            
+            # Get headers
+            headers = await page.eval_on_selector_all('table:first-of-type th', 
+                                                   'elements => elements.map(e => e.textContent.trim())')
+            print(f"Headers: {headers}")
+            
+            # Try to identify column positions based on headers
+            date_col = -1
+            time_col = -1
+            teams_col = -1
+            result_col = -1
+            venue_col = -1
+            
             for i, header in enumerate(headers):
                 header_lower = header.lower()
                 if any(date_term in header_lower for date_term in ['date', 'päivä', 'pvm']):
@@ -254,118 +223,123 @@ def get_fixtures():
                     result_col = i
                 elif any(venue_term in header_lower for venue_term in ['venue', 'paikka', 'stadion']):
                     venue_col = i
-        
-        # If headers don't help, guess based on common positions
-        if date_col == -1:
-            date_col = 0  # First column often contains date
-        if time_col == -1:
-            time_col = 1  # Second column often contains time
-        if teams_col == -1:
-            teams_col = 2  # Third column often contains teams
-        if result_col == -1:
-            result_col = 3  # Fourth column often contains results
-        if venue_col == -1:
-            venue_col = 4  # Fifth column often contains venue
-        
-        print(f"Column positions - Date: {date_col}, Time: {time_col}, Teams: {teams_col}, Result: {result_col}, Venue: {venue_col}")
-        
-        # Process each data row
-        for row_index, row in enumerate(rows[1:], 1):  # Skip header row
-            cells = row.find_all('td')
             
-            if len(cells) >= 3:  # Need at least date, time, and teams
-                match_data = {'Row': row_index}  # Add row number for debugging
+            # If headers don't help, guess based on common positions
+            if date_col == -1:
+                date_col = 0  # First column often contains date
+            if time_col == -1:
+                time_col = 1  # Second column often contains time
+            if teams_col == -1:
+                teams_col = 2  # Third column often contains teams
+            if result_col == -1:
+                result_col = 3  # Fourth column often contains results
+            if venue_col == -1:
+                venue_col = 4  # Fifth column often contains venue
+            
+            print(f"Column positions - Date: {date_col}, Time: {time_col}, Teams: {teams_col}, Result: {result_col}, Venue: {venue_col}")
+            
+            # Get all rows (skip header row)
+            rows = await page.query_selector_all('table:first-of-type tr:not(:first-child)')
+            print(f"Found {len(rows)} data rows")
+            
+            for i, row in enumerate(rows):
+                cells = await row.query_selector_all('td')
                 
-                # Extract data based on identified columns
-                if date_col >= 0 and date_col < len(cells):
-                    match_data['Pelipäivä'] = cells[date_col].text.strip()
-                else:
-                    match_data['Pelipäivä'] = ""
-                
-                if time_col >= 0 and time_col < len(cells):
-                    match_data['Klo'] = cells[time_col].text.strip()
-                else:
-                    match_data['Klo'] = ""
-                
-                # Teams - might be in format "Home - Away"
-                if teams_col >= 0 and teams_col < len(cells):
-                    teams_text = cells[teams_col].text.strip()
-                    if " - " in teams_text:
-                        home, away = teams_text.split(" - ", 1)
-                        match_data['Koti'] = home.strip()
-                        match_data['Vieras'] = away.strip()
+                if len(cells) >= 3:  # Need at least date, time, and teams
+                    match_data = {'Row': i+1}  # Add row number for debugging
+                    
+                    # Extract data based on identified columns
+                    if date_col >= 0 and date_col < len(cells):
+                        date_text = await cells[date_col].text_content()
+                        match_data['Pelipäivä'] = date_text.strip()
                     else:
-                        match_data['Koti'] = teams_text
+                        match_data['Pelipäivä'] = ""
+                    
+                    if time_col >= 0 and time_col < len(cells):
+                        time_text = await cells[time_col].text_content()
+                        match_data['Klo'] = time_text.strip()
+                    else:
+                        match_data['Klo'] = ""
+                    
+                    # Teams - might be in format "Home - Away"
+                    if teams_col >= 0 and teams_col < len(cells):
+                        teams_text = await cells[teams_col].text_content()
+                        teams_text = teams_text.strip()
+                        
+                        if " - " in teams_text:
+                            home, away = teams_text.split(" - ", 1)
+                            match_data['Koti'] = home.strip()
+                            match_data['Vieras'] = away.strip()
+                        else:
+                            match_data['Koti'] = teams_text
+                            match_data['Vieras'] = ""
+                    else:
+                        match_data['Koti'] = ""
                         match_data['Vieras'] = ""
-                else:
-                    match_data['Koti'] = ""
-                    match_data['Vieras'] = ""
-                
-                # Result - might be in format "0-0"
-                if result_col >= 0 and result_col < len(cells):
-                    result_text = cells[result_col].text.strip()
-                    if "-" in result_text:
-                        try:
-                            home_score, away_score = result_text.split("-", 1)
-                            match_data['Kotitulos'] = home_score.strip()
-                            match_data['Vierastulos'] = away_score.strip()
-                        except ValueError:
+                    
+                    # Result - might be in format "0-0"
+                    if result_col >= 0 and result_col < len(cells):
+                        result_text = await cells[result_col].text_content()
+                        result_text = result_text.strip()
+                        
+                        if "-" in result_text:
+                            try:
+                                home_score, away_score = result_text.split("-", 1)
+                                match_data['Kotitulos'] = home_score.strip()
+                                match_data['Vierastulos'] = away_score.strip()
+                            except ValueError:
+                                match_data['Kotitulos'] = ""
+                                match_data['Vierastulos'] = ""
+                        else:
                             match_data['Kotitulos'] = ""
                             match_data['Vierastulos'] = ""
                     else:
                         match_data['Kotitulos'] = ""
                         match_data['Vierastulos'] = ""
-                else:
-                    match_data['Kotitulos'] = ""
-                    match_data['Vierastulos'] = ""
-                
-                # Venue
-                if venue_col >= 0 and venue_col < len(cells):
-                    match_data['Paikka'] = cells[venue_col].text.strip()
-                else:
-                    match_data['Paikka'] = ""
-                
-                # Only add if we have meaningful data
-                if match_data['Pelipäivä'] and (match_data['Koti'] or match_data['Vieras']):
-                    fixtures.append(match_data)
+                    
+                    # Venue
+                    if venue_col >= 0 and venue_col < len(cells):
+                        venue_text = await cells[venue_col].text_content()
+                        match_data['Paikka'] = venue_text.strip()
+                    else:
+                        match_data['Paikka'] = ""
+                    
+                    # Only add if we have meaningful data
+                    if match_data['Pelipäivä'] and (match_data['Koti'] or match_data['Vieras']):
+                        fixtures.append(match_data)
             
-            # If we found at least 5 fixtures in this table, consider it valid
-            if len(fixtures) >= 5:
-                table_found = True
-        
-        # If we found fixtures in this table, stop looking
-        if table_found:
-            break
-    
-    if not fixtures:
-        print("WARNING: Could not find valid fixtures data!")
-        return None
-    
-    print(f"Extracted {len(fixtures)} fixtures")
-    
-    # Print first fixture for verification
-    if fixtures:
-        print(f"Sample fixture data: {fixtures[0]}")
-    
-    # Convert to DataFrame
-    df = pd.DataFrame(fixtures)
-    
-    print(f"Fixtures columns: {df.columns.tolist()}")
-    
-    # Save both as CSV and JSON for better debugging
-    df.to_csv('Ottelut.csv', index=False, encoding='utf-8')
-    df.to_csv('tulokset.csv', index=False, encoding='utf-8')
-    
-    # Also save as JSON for easier inspection
-    with open('Ottelut.json', 'w', encoding='utf-8') as f:
-        json.dump(fixtures, f, ensure_ascii=False, indent=2)
-    
-    print(f"Saved {len(df)} fixtures to Ottelut.csv, tulokset.csv and Ottelut.json")
-    
-    # Create Markdown
-    create_fixtures_markdown(df)
-    
-    return df
+            print(f"Extracted {len(fixtures)} fixtures")
+            
+            # Print first fixture for verification
+            if fixtures:
+                print(f"Sample fixture data: {fixtures[0]}")
+            
+            # Convert to DataFrame
+            df = pd.DataFrame(fixtures)
+            
+            # Save data
+            df.to_csv('Ottelut.csv', index=False, encoding='utf-8')
+            df.to_csv('tulokset.csv', index=False, encoding='utf-8')
+            df.to_csv('PelatutOttelut.csv', index=False, encoding='utf-8')
+            
+            with open('Ottelut.json', 'w', encoding='utf-8') as f:
+                json.dump(fixtures, f, ensure_ascii=False, indent=2)
+            
+            # Create Markdown
+            create_fixtures_markdown(df)
+            
+            await browser.close()
+            return df
+            
+        except Exception as e:
+            print(f"Error fetching fixtures: {e}")
+            traceback.print_exc()
+            
+            # Save error screenshot
+            await save_screenshot(page, "fixtures_error")
+            
+            await browser.close()
+            return None
 
 def create_league_table_markdown(df):
     """Create a markdown file for the league table"""
@@ -440,18 +414,16 @@ def create_fixtures_markdown(df):
             for _, row in df.iterrows():
                 # Format the score if available
                 tulos = ""
-                if pd.notna(row.get('Kotitulos')) and pd.notna(row.get('Vierastulos')):
-                    if row['Kotitulos'] and row['Vierastulos']:
-                        tulos = f"{row['Kotitulos']}-{row['Vierastulos']}"
+                if 'Kotitulos' in df.columns and 'Vierastulos' in df.columns:
+                    if pd.notna(row['Kotitulos']) and pd.notna(row['Vierastulos']):
+                        if row['Kotitulos'] and row['Vierastulos']:
+                            tulos = f"{row['Kotitulos']}-{row['Vierastulos']}"
                 
                 f.write(f"| {row.get('Pelipäivä', '')} | {row.get('Klo', '')} | " +
                         f"{row.get('Koti', '')} | {row.get('Vieras', '')} | " +
                         f"{tulos} | {row.get('Paikka', '')} |\n")
         
-        # Also create PelatutOttelut.csv for compatibility
-        df.to_csv('PelatutOttelut.csv', index=False)
-        
-        print("Created PelatutOttelut.md and PelatutOttelut.csv successfully")
+        print("Created PelatutOttelut.md successfully")
     except Exception as e:
         print(f"Error creating fixtures markdown: {e}")
         traceback.print_exc()
@@ -468,29 +440,21 @@ def update_timestamp():
         print(f"Error updating timestamp: {e}")
         return None
 
-if __name__ == "__main__":
+async def main():
     print("\n" + "=" * 80)
-    print("STARTING FOOTBALL DATA SCRAPER - YKKÖNEN")
+    print("STARTING FOOTBALL DATA SCRAPER - YKKÖNEN (PLAYWRIGHT VERSION)")
     print("=" * 80)
     
     timestamp = update_timestamp()
     print(f"Starting at: {timestamp}")
-
+    success = False
+    
     try:
-        # Clear any previous snapshots
-        for filename in ['league_table_snapshot.html', 'fixtures_snapshot.html',
-                        'league_all_tables.txt', 'fixtures_all_tables.txt']:
-            if os.path.exists(filename):
-                os.remove(filename)
-                print(f"Removed previous {filename}")
+        # Get league table
+        league_data = await get_league_table()
         
-        # Fetch league table
-        print("\n=== FETCHING LEAGUE TABLE ===")
-        league_data = get_league_table()
-        
-        # Fetch fixtures
-        print("\n=== FETCHING FIXTURES ===")
-        fixtures_data = get_fixtures()
+        # Get fixtures
+        fixtures_data = await get_fixtures()
         
         # Create a log summary
         with open('scraper_log.txt', 'w') as f:
@@ -499,16 +463,28 @@ if __name__ == "__main__":
             f.write("=== LEAGUE TABLE ===\n")
             if league_data is not None:
                 f.write(f"Successfully scraped league table with {len(league_data)} teams\n")
+                success = True
             else:
                 f.write("Failed to scrape league table\n")
             
             f.write("\n=== FIXTURES ===\n")
             if fixtures_data is not None:
                 f.write(f"Successfully scraped fixtures with {len(fixtures_data)} matches\n")
+                success = True
             else:
                 f.write("Failed to scrape fixtures\n")
         
+        # Update files' modification time
+        if success:
+            for filename in ['tulokset.csv', 'Ottelut.csv', 'Sarjataulukko.csv', 
+                            'PelatutOttelut.csv', 'PelatutOttelut.md', 
+                            'Sarjataulukko.md', 'timestamp.txt']:
+                if os.path.exists(filename):
+                    os.utime(filename, None)
+                    print(f"Updated modification time for {filename}")
+        
         print("\n=== SCRAPER COMPLETED ===")
+        return success
     except Exception as e:
         print(f"CRITICAL ERROR: {e}")
         traceback.print_exc()
@@ -518,3 +494,8 @@ if __name__ == "__main__":
             f.write(f"Error at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write(f"Exception: {str(e)}\n\n")
             traceback.print_exc(file=f)
+        
+        return False
+
+if __name__ == "__main__":
+    asyncio.run(main())
