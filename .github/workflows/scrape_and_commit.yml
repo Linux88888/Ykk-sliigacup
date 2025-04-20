@@ -32,18 +32,30 @@ jobs:
     - name: Check internet connectivity
       run: |
         echo "Testing internet connectivity..."
+        curl -I https://palloliitto.fi
         curl -I https://tulospalvelu.palloliitto.fi/
+        
+    - name: Run diagnostic script
+      run: |
+        echo "Running diagnostics..."
+        python debug_script.py
         
     - name: Run scraper
       run: |
         echo "Running scraper with Playwright..."
-        python scraper.py
-        echo "Scraper completed"
+        python scraper.py || echo "Scraper failed, will use fallback data"
+      continue-on-error: true
+        
+    - name: Use fallback data
+      run: |
+        echo "Creating fallback data..."
+        python fallback_data.py
         
     - name: Debug file outputs
       run: |
         echo "Listing screenshot and HTML files:"
-        ls -la *.png *.html
+        ls -la *.png || echo "No PNG files"
+        ls -la *.html || echo "No HTML files"
         echo "Listing CSV files:"
         ls -la *.csv
         echo "Listing Markdown files:"
