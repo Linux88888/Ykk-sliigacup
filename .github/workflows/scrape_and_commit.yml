@@ -34,7 +34,7 @@ jobs:
     - name: Check internet connectivity
       run: |
         echo "Testing internet connectivity..."
-        curl -I https://tulospalvelu.lentopalloliitto.fi/
+        curl -I https://tulospalvelu.palloliitto.fi/
         
     - name: Run scraper with debug
       run: |
