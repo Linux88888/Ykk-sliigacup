@@ -1,3 +1,215 @@
-# Pelatut ottelut
+# Pelaajatilastot
 
-Ei pelattuja otteluita.
+| Pelaaja | Joukkue | Ottelut | Maalit | Syötöt | Pisteet | Minuutit |
+| ------- | ------- | ------- | ------ | ------ | ------- | -------- |
+| Helén Onni | TPS | 4 | 3 | 2 | 5 | 357 |
+| Kallio Elias | KäPa | 4 | 3 | 1 | 4 | 360 |
+| Lehtisalo Otto | SalPa | 4 | 3 | 1 | 4 | 272 |
+| Mero Toivo | HJK Klubi 04 | 4 | 3 | 0 | 3 | 353 |
+| Noori Hadi | HJK Klubi 04 | 3 | 2 | 2 | 4 | 239 |
+| Huovila Vilho | FC Lahti | 4 | 2 | 1 | 3 | 223 |
+| Mohammed Nasiru | EIF | 4 | 2 | 1 | 3 | 359 |
+| Dahlfors Oscar | TPS | 3 | 2 | 0 | 2 | 184 |
+| Pippola Tuomas | TPS | 3 | 2 | 0 | 2 | 270 |
+| Ahmed-Nur Ayuub | PK-35 | 4 | 2 | 0 | 2 | 302 |
+| Pietsalo Roni | EIF | 4 | 2 | 0 | 2 | 360 |
+| Pulkkinen Mikael | KäPa | 4 | 2 | 0 | 2 | 270 |
+| Turunen Miro | Jippo | 4 | 2 | 0 | 2 | 263 |
+| Hänninen Onni | SJK Akatemia | 4 | 1 | 2 | 3 | 245 |
+| Kajanoja Karlo | HJK Klubi 04 | 3 | 1 | 1 | 2 | 109 |
+| Ojanen Justus | SJK Akatemia | 4 | 1 | 1 | 2 | 343 |
+| Pihlaja Oskar | Jippo | 4 | 1 | 1 | 2 | 330 |
+| Bojang Momodou | SJK Akatemia | 1 | 1 | 0 | 1 | 74 |
+| Huhtala Roope | Jippo | 2 | 1 | 0 | 1 | 90 |
+| Lindholm Aaron | FC Lahti | 2 | 1 | 0 | 1 | 43 |
+| Ahadi Mosawer | JäPS | 3 | 1 | 0 | 1 | 225 |
+| Ahola Ville | JäPS | 3 | 1 | 0 | 1 | 240 |
+| Hyppönen Aapo | SJK Akatemia | 3 | 1 | 0 | 1 | 90 |
+| Hyvönen Marlo | HJK Klubi 04 | 3 | 1 | 0 | 1 | 176 |
+| Kikuchi Yoshiaki | Jippo | 3 | 1 | 0 | 1 | 269 |
+| Manneh Foday | KäPa | 3 | 1 | 0 | 1 | 145 |
+| Pikkuhookana Jasper | PK-35 | 3 | 1 | 0 | 1 | 108 |
+| Venäläinen Eetu | Jippo | 3 | 1 | 0 | 1 | 60 |
+| Cukici Denis | KäPa | 4 | 1 | 0 | 1 | 281 |
+| Etu Francis Gerrald | HJK Klubi 04 | 4 | 1 | 0 | 1 | 165 |
+| Forss Lassi | Jippo | 4 | 1 | 0 | 1 | 336 |
+| Harjanne Rasmus | TPS | 4 | 1 | 0 | 1 | 296 |
+| Hautamäki Elari | SJK Akatemia | 4 | 1 | 0 | 1 | 267 |
+| Kaijasilta Noah | SalPa | 4 | 1 | 0 | 1 | 264 |
+| Karkulowski Tobias | FC Lahti | 4 | 1 | 0 | 1 | 360 |
+| Karlsson Jesper | EIF | 4 | 1 | 0 | 1 | 360 |
+| Meura Joonas | SalPa | 4 | 1 | 0 | 1 | 360 |
+| Oteng Eric | FC Lahti | 4 | 1 | 0 | 1 | 260 |
+| Salo Julius | JäPS | 4 | 1 | 0 | 1 | 253 |
+| Boström Aapo | TPS | 4 | 0 | 2 | 2 | 360 |
+| Gottberg Jakob | EIF | 4 | 0 | 2 | 2 | 360 |
+| Hannula Otto | HJK Klubi 04 | 4 | 0 | 2 | 2 | 360 |
+| Stenius Santeri | EIF | 2 | 0 | 1 | 1 | 180 |
+| Tuominen Eino | HJK Klubi 04 | 2 | 0 | 1 | 1 | 23 |
+| Forsman Pasi | Jippo | 3 | 0 | 1 | 1 | 225 |
+| Ikonen Lasse | TPS | 3 | 0 | 1 | 1 | 270 |
+| Nylund Antton | HJK Klubi 04 | 3 | 0 | 1 | 1 | 200 |
+| Pitkälä Eino-Iivari | PK-35 | 3 | 0 | 1 | 1 | 195 |
+| Söderlund Impton | JäPS | 3 | 0 | 1 | 1 | 96 |
+| Babiker Asaad | FC Lahti | 4 | 0 | 1 | 1 | 317 |
+| Herronen Samu | KäPa | 4 | 0 | 1 | 1 | 165 |
+| Leinonen Niklas | KäPa | 4 | 0 | 1 | 1 | 238 |
+| Lyyra Aleksi | SJK Akatemia | 4 | 0 | 1 | 1 | 315 |
+| Rajamäki Nino | TPS | 4 | 0 | 1 | 1 | 235 |
+| Sainio Aleksi | JäPS | 4 | 0 | 1 | 1 | 216 |
+| Sid Robin | EIF | 4 | 0 | 1 | 1 | 300 |
+| Atarah Artur | SJK Akatemia | 1 | 0 | 0 | 0 | 15 |
+| Björklund August | EIF | 1 | 0 | 0 | 0 | 67 |
+| Bouajila Salem | HJK Klubi 04 | 1 | 0 | 0 | 0 | 7 |
+| Grönlund Eetu | HJK Klubi 04 | 1 | 0 | 0 | 0 | 63 |
+| Harju Niklas | TPS | 1 | 0 | 0 | 0 | 90 |
+| Holopainen Justus | JäPS | 1 | 0 | 0 | 0 | 45 |
+| Hyytinen Elias | SJK Akatemia | 1 | 0 | 0 | 0 | 90 |
+| Häggström Oscar | TPS | 1 | 0 | 0 | 0 | 20 |
+| Karttila Ami | SalPa | 1 | 0 | 0 | 0 | 45 |
+| Kauppila Miika | TPS | 1 | 0 | 0 | 0 | 70 |
+| Kela Topi | Jippo | 1 | 0 | 0 | 0 | 4 |
+| Khayat Hedi | JäPS | 1 | 0 | 0 | 0 | 7 |
+| Kivelä Atte | SJK Akatemia | 1 | 0 | 0 | 0 | 90 |
+| Koivisto Tuomas | SJK Akatemia | 1 | 0 | 0 | 0 | 90 |
+| Koski Joonas | SalPa | 1 | 0 | 0 | 0 | 90 |
+| Koski Miika | SalPa | 1 | 0 | 0 | 0 | 1 |
+| Kyllönen Lucas | SJK Akatemia | 1 | 0 | 0 | 0 | 45 |
+| Lundström Noah | JäPS | 1 | 0 | 0 | 0 | 45 |
+| Machaal Aniis | SJK Akatemia | 1 | 0 | 0 | 0 | 90 |
+| Mahugo Barrena Karlos | Jippo | 1 | 0 | 0 | 0 | 45 |
+| Markkanen Eero | PK-35 | 1 | 0 | 0 | 0 | 29 |
+| Mehmeti Endrit | PK-35 | 1 | 0 | 0 | 0 | 64 |
+| Meriläinen Kasper | KäPa | 1 | 0 | 0 | 0 | 26 |
+| Minkkinen Otto | KäPa | 1 | 0 | 0 | 0 | 16 |
+| Moilanen Ilmari | SJK Akatemia | 1 | 0 | 0 | 0 | 2 |
+| Mäkelä Eemeli | SalPa | 1 | 0 | 0 | 0 | 28 |
+| Pakkanen Roope | EIF | 1 | 0 | 0 | 0 | 61 |
+| Pohjolainen Santeri | TPS | 1 | 0 | 0 | 0 | 45 |
+| Ripatti Daniel | KäPa | 1 | 0 | 0 | 0 | 16 |
+| Ristola Aleksi | JäPS | 1 | 0 | 0 | 0 | 66 |
+| Rodriguez Acurcia Miquel Antoni | SJK Akatemia | 1 | 0 | 0 | 0 | 90 |
+| Ruponen Reino | SalPa | 1 | 0 | 0 | 0 | 27 |
+| Sivonen Arttu | EIF | 1 | 0 | 0 | 0 | 45 |
+| Sivunen Jaakko | JäPS | 1 | 0 | 0 | 0 | 17 |
+| Smith Terrence | Jippo | 1 | 0 | 0 | 0 | 11 |
+| Sundman Joonas | PK-35 | 1 | 0 | 0 | 0 | 45 |
+| Tarkanmäki Jone | HJK Klubi 04 | 1 | 0 | 0 | 0 | 90 |
+| Toivonen Aaro | HJK Klubi 04 | 1 | 0 | 0 | 0 | 27 |
+| Vainionpää Matias | FC Lahti | 1 | 0 | 0 | 0 | 38 |
+| Virtanen Jermu | JäPS | 1 | 0 | 0 | 0 | 90 |
+| Abdu Muchipay | SJK Akatemia | 2 | 0 | 0 | 0 | 104 |
+| Aitos Jesper | TPS | 2 | 0 | 0 | 0 | 180 |
+| Almeida Da Silva Ramilson | EIF | 2 | 0 | 0 | 0 | 180 |
+| Arminen Taavi | JäPS | 2 | 0 | 0 | 0 | 135 |
+| Bah Mamadou Saidou | EIF | 2 | 0 | 0 | 0 | 72 |
+| Collin Tuomas | KäPa | 2 | 0 | 0 | 0 | 99 |
+| Costa Manuel Pami | FC Lahti | 2 | 0 | 0 | 0 | 93 |
+| Hietakangas Musa | SJK Akatemia | 2 | 0 | 0 | 0 | 45 |
+| Hietalahti Pekka | KäPa | 2 | 0 | 0 | 0 | 54 |
+| Hvidberg Daniel | JäPS | 2 | 0 | 0 | 0 | 34 |
+| Jakonen Oskari | SalPa | 2 | 0 | 0 | 0 | 135 |
+| Kangasniemi Iiro | SJK Akatemia | 2 | 0 | 0 | 0 | 90 |
+| Kante Abdoulaye | FC Lahti | 2 | 0 | 0 | 0 | 43 |
+| Ketonen Veka | JäPS | 2 | 0 | 0 | 0 | 162 |
+| Laiho Janne | JäPS | 2 | 0 | 0 | 0 | 180 |
+| Le Goff-Conan Adam | HJK Klubi 04 | 2 | 0 | 0 | 0 | 119 |
+| Linnas Otso | EIF | 2 | 0 | 0 | 0 | 180 |
+| Lintervo Wertti | TPS | 2 | 0 | 0 | 0 | 26 |
+| Maukonen Osku | FC Lahti | 2 | 0 | 0 | 0 | 90 |
+| Mustafa Besart | JäPS | 2 | 0 | 0 | 0 | 180 |
+| Okoye Chinaecherem Frankline | PK-35 | 2 | 0 | 0 | 0 | 106 |
+| Palmula Leevi | HJK Klubi 04 | 2 | 0 | 0 | 0 | 87 |
+| Ranta Antti | SalPa | 2 | 0 | 0 | 0 | 18 |
+| Rantasalmi Noah | SJK Akatemia | 2 | 0 | 0 | 0 | 45 |
+| Sabwele Adiche | HJK Klubi 04 | 2 | 0 | 0 | 0 | 52 |
+| Serdarevic Amar | SalPa | 2 | 0 | 0 | 0 | 30 |
+| Sihvonen Atte | TPS | 2 | 0 | 0 | 0 | 180 |
+| Sillah Samba | PK-35 | 2 | 0 | 0 | 0 | 13 |
+| Tapani Joona | JäPS | 2 | 0 | 0 | 0 | 179 |
+| Viramäki Kasper | PK-35 | 2 | 0 | 0 | 0 | 109 |
+| Abdel Kawy Ali | SalPa | 3 | 0 | 0 | 0 | 85 |
+| Abdi Thabit | SalPa | 3 | 0 | 0 | 0 | 33 |
+| Ameen Mustafa | HJK Klubi 04 | 3 | 0 | 0 | 0 | 96 |
+| Andberg Tuukka | PK-35 | 3 | 0 | 0 | 0 | 164 |
+| Augusto Ferreira Martim | FC Lahti | 3 | 0 | 0 | 0 | 165 |
+| Belabid Amir | FC Lahti | 3 | 0 | 0 | 0 | 83 |
+| Cascalhais Diniz Pedro | PK-35 | 3 | 0 | 0 | 0 | 177 |
+| Chan Arop | HJK Klubi 04 | 3 | 0 | 0 | 0 | 194 |
+| Collin Elias | TPS | 3 | 0 | 0 | 0 | 202 |
+| Costa Do Espirito Santo Joao Pedro | PK-35 | 3 | 0 | 0 | 0 | 196 |
+| Efimov Stanislav | EIF | 3 | 0 | 0 | 0 | 130 |
+| Forsström Alexander | EIF | 3 | 0 | 0 | 0 | 270 |
+| Haapanen Mitja | HJK Klubi 04 | 3 | 0 | 0 | 0 | 270 |
+| Hahl Hugo | JäPS | 3 | 0 | 0 | 0 | 129 |
+| Hakanpää Olli | TPS | 3 | 0 | 0 | 0 | 270 |
+| Heinonen Jan | SalPa | 3 | 0 | 0 | 0 | 238 |
+| Ingman Emil | HJK Klubi 04 | 3 | 0 | 0 | 0 | 197 |
+| Inkinen Topias | FC Lahti | 3 | 0 | 0 | 0 | 270 |
+| Konttas Valo | HJK Klubi 04 | 3 | 0 | 0 | 0 | 71 |
+| Koskinen Otso | FC Lahti | 3 | 0 | 0 | 0 | 92 |
+| Lietsa Johan | HJK Klubi 04 | 3 | 0 | 0 | 0 | 242 |
+| Louramo Aarne | TPS | 3 | 0 | 0 | 0 | 3 |
+| Malik Ronal | SJK Akatemia | 3 | 0 | 0 | 0 | 106 |
+| Mehmeti Albin | SalPa | 3 | 0 | 0 | 0 | 181 |
+| Mikkonen Antto | SalPa | 3 | 0 | 0 | 0 | 270 |
+| Munukka Anton | FC Lahti | 3 | 0 | 0 | 0 | 135 |
+| Pallas Emil | PK-35 | 3 | 0 | 0 | 0 | 117 |
+| Partanen Janne | Jippo | 3 | 0 | 0 | 0 | 89 |
+| Peltola Asla | FC Lahti | 3 | 0 | 0 | 0 | 163 |
+| Piispa Aleksi | KäPa | 3 | 0 | 0 | 0 | 261 |
+| Pimentel Lucas | EIF | 3 | 0 | 0 | 0 | 84 |
+| Prince Ume Kenny | KäPa | 3 | 0 | 0 | 0 | 126 |
+| Rautiainen Otto | SalPa | 3 | 0 | 0 | 0 | 210 |
+| Saarenkunnas Santeri | Jippo | 3 | 0 | 0 | 0 | 21 |
+| Savini Sebastian | SJK Akatemia | 3 | 0 | 0 | 0 | 180 |
+| Sipi Rasmus | PK-35 | 3 | 0 | 0 | 0 | 225 |
+| Sulaiman Shehu | SJK Akatemia | 3 | 0 | 0 | 0 | 209 |
+| Tiainen Joona | FC Lahti | 3 | 0 | 0 | 0 | 135 |
+| Toivonen Ilmo | HJK Klubi 04 | 3 | 0 | 0 | 0 | 217 |
+| Tolonen Maximo | PK-35 | 3 | 0 | 0 | 0 | 127 |
+| Traore Aaron | HJK Klubi 04 | 3 | 0 | 0 | 0 | 125 |
+| Valakari Toivo | KäPa | 3 | 0 | 0 | 0 | 34 |
+| Vesterbacka Leon | SJK Akatemia | 3 | 0 | 0 | 0 | 106 |
+| Väkiparta Tomi | TPS | 3 | 0 | 0 | 0 | 170 |
+| Abdi Ayuub | PK-35 | 4 | 0 | 0 | 0 | 102 |
+| Adu Enock Kofi | EIF | 4 | 0 | 0 | 0 | 315 |
+| Beyai Mustafa | PK-35 | 4 | 0 | 0 | 0 | 178 |
+| Grönblom William | EIF | 4 | 0 | 0 | 0 | 232 |
+| Haapiainen Willem | KäPa | 4 | 0 | 0 | 0 | 110 |
+| Haataja Niklas | Jippo | 4 | 0 | 0 | 0 | 270 |
+| Haikonen Peetu | JäPS | 4 | 0 | 0 | 0 | 230 |
+| Heikkinen Daniel | FC Lahti | 4 | 0 | 0 | 0 | 313 |
+| Heikurinen Niilo | KäPa | 4 | 0 | 0 | 0 | 304 |
+| Huhtamäki Reko | KäPa | 4 | 0 | 0 | 0 | 87 |
+| Huovinen Joel | KäPa | 4 | 0 | 0 | 0 | 344 |
+| Jama Omar | JäPS | 4 | 0 | 0 | 0 | 360 |
+| Jokiranta Viljami | FC Lahti | 4 | 0 | 0 | 0 | 264 |
+| Jouhi Adam | KäPa | 4 | 0 | 0 | 0 | 318 |
+| Järvinen Topi | JäPS | 4 | 0 | 0 | 0 | 216 |
+| Kangaskokko Taavi | SJK Akatemia | 4 | 0 | 0 | 0 | 97 |
+| Kari Jere | HJK Klubi 04 | 4 | 0 | 0 | 0 | 360 |
+| Korsunov Sander | SJK Akatemia | 4 | 0 | 0 | 0 | 243 |
+| Kostian Jasper | FC Lahti | 4 | 0 | 0 | 0 | 196 |
+| Laamanen Eemil | FC Lahti | 4 | 0 | 0 | 0 | 360 |
+| Lehto Eero | SJK Akatemia | 4 | 0 | 0 | 0 | 344 |
+| Lika Yllson | KäPa | 4 | 0 | 0 | 0 | 280 |
+| Lindberg Pontus | KäPa | 4 | 0 | 0 | 0 | 306 |
+| Nakanishi Juta | PK-35 | 4 | 0 | 0 | 0 | 190 |
+| Nikki Jesse | JäPS | 4 | 0 | 0 | 0 | 242 |
+| Olsbo Valtteri | SalPa | 4 | 0 | 0 | 0 | 237 |
+| Palmasto Tino | JäPS | 4 | 0 | 0 | 0 | 270 |
+| Piirainen Pyry | Jippo | 4 | 0 | 0 | 0 | 360 |
+| Pozo Hernandez Adrian | SJK Akatemia | 4 | 0 | 0 | 0 | 270 |
+| Pöysä Severi | SalPa | 4 | 0 | 0 | 0 | 347 |
+| Rrustemi Ermal | SalPa | 4 | 0 | 0 | 0 | 84 |
+| Räsänen Karo | PK-35 | 4 | 0 | 0 | 0 | 315 |
+| Sairinen Akim | TPS | 4 | 0 | 0 | 0 | 306 |
+| Salmi Joonas | KäPa | 4 | 0 | 0 | 0 | 120 |
+| Tykkyläinen Nuutti | Jippo | 4 | 0 | 0 | 0 | 360 |
+| Uchiyama Shunta | PK-35 | 4 | 0 | 0 | 0 | 252 |
+| Vesiaho Valtteri | Jippo | 4 | 0 | 0 | 0 | 356 |
+| Viitaniemi Eetu | Jippo | 4 | 0 | 0 | 0 | 295 |
+| Viljala Ville | PK-35 | 4 | 0 | 0 | 0 | 360 |
+| Watanabe Junnosuke | Jippo | 4 | 0 | 0 | 0 | 360 |
+| Ölander Henrik | JäPS | 4 | 0 | 0 | 0 | 343 |
