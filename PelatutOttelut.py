@@ -19,7 +19,7 @@ def fetch_match_stats(match_id):
             # 1. Navigoi sivulle
             url = f"https://tulospalvelu.palloliitto.fi/match/{match_id}/stats"
             print(f"🔄 Haetaan ottelua {match_id}...")
-            page.goto(url, wait_until="domcontentloaded", timeout=60000)  # Odota DOM:n latautumista
+            page.goto(url, wait_until="domcontentloaded", timeout=60000)
             
             # 2. Odota pääsisältöä (pidempi timeout)
             page.wait_for_selector('div.match-header', timeout=60000)
@@ -84,8 +84,28 @@ def fetch_match_stats(match_id):
         finally:
             browser.close()
 
+def get_all_upcoming_matches():
+    # Hakee tulevat ottelut ja palauttaa niiden ID:t fixtures-osoitteesta
+    from playwright.sync_api import sync_playwright
+    fixtures_url = "https://tulospalvelu.palloliitto.fi/category/M1L!spljp25/group/1/fixtures"
+    match_ids = []
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        try:
+            page.goto(fixtures_url, wait_until="networkidle", timeout=60000)
+            # Esimerkki: Etsi kaikki ottelut joiden linkki sisältää "/match/"
+            links = page.query_selector_all('a[href*="/match/"]')
+            for link in links:
+                href = link.get_attribute('href')
+                if href and "/match/" in href:
+                    match_id = href.split("/match/")[1].split("/")[0]
+                    match_ids.append(match_id)
+        finally:
+            browser.close()
+    return match_ids
+
 if __name__ == "__main__":
-    import sys
-    match_id = sys.argv[1] if len(sys.argv) > 1 else 2748452
-    success = fetch_match_stats(match_id)
-    sys.exit(0 if success else 1)
+    matches = get_all_upcoming_matches()
+    for match_id in matches:
+        success = fetch_match_stats(match_id)
