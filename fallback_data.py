@@ -35,12 +35,18 @@ def create_fallback_files():
     # Convert to DataFrames
     league_df = pd.DataFrame(league_table)
     fixtures_df = pd.DataFrame(fixtures)
-    
+
+    # Only played matches (both scores present) belong in PelatutOttelut
+    played_df = fixtures_df[
+        fixtures_df['Kotitulos'].fillna('').astype(str).str.strip().ne('') &
+        fixtures_df['Vierastulos'].fillna('').astype(str).str.strip().ne('')
+    ]
+
     # Save to CSV
     league_df.to_csv('Sarjataulukko.csv', index=False, encoding='utf-8')
     fixtures_df.to_csv('Ottelut.csv', index=False, encoding='utf-8')
     fixtures_df.to_csv('tulokset.csv', index=False, encoding='utf-8')
-    fixtures_df.to_csv('PelatutOttelut.csv', index=False, encoding='utf-8')
+    played_df.to_csv('PelatutOttelut.csv', index=False, encoding='utf-8')
     
     # Save as JSON for better readability
     with open('Sarjataulukko.json', 'w', encoding='utf-8') as f:
@@ -64,12 +70,11 @@ def create_fallback_files():
         f.write('# Ottelut - Ykkönen\n\n')
         f.write('| Päivä | Aika | Koti | Vieras | Tulos | Paikka |\n')
         f.write('| ----- | ---- | ---- | ------ | ----- | ------ |\n')
-        
+
         for match in fixtures:
-            tulos = ""
-            if match['Kotitulos'] and match['Vierastulos']:
-                tulos = f"{match['Kotitulos']}-{match['Vierastulos']}"
-            
+            if match['Kotitulos'] == '' or match['Vierastulos'] == '':
+                continue
+            tulos = f"{match['Kotitulos']}-{match['Vierastulos']}"
             f.write(f"| {match['Pelipäivä']} | {match['Klo']} | {match['Koti']} | {match['Vieras']} | {tulos} | {match['Paikka']} |\n")
     
     # Update timestamp

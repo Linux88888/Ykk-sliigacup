@@ -51,20 +51,27 @@ try:
                 df['Pelipäivä'] = pd.to_datetime(df['Pelipäivä'], format='%d.%m.%Y')
                 df = df.sort_values(by=['Pelipäivä', 'Klo'], ascending=[True, True])
                 df['Pelipäivä'] = df['Pelipäivä'].dt.strftime('%d.%m.%Y')
-            
-            # Tallenna filtteröity data CSV-tiedostoon
-            df.to_csv('PelatutOttelut.csv', index=False)
-            
+
+            # Tallenna vain pelatut ottelut (joilla on tulos) CSV-tiedostoon
+            if 'Kotitulos' in df.columns and 'Vierastulos' in df.columns:
+                played = df[
+                    df['Kotitulos'].fillna('').astype(str).str.strip().ne('') &
+                    df['Vierastulos'].fillna('').astype(str).str.strip().ne('')
+                ]
+            else:
+                played = df
+            played.to_csv('PelatutOttelut.csv', index=False)
+
             # Luo Markdown-tiedosto
             with open('PelatutOttelut.md', 'w', encoding='utf-8') as f:
                 f.write('# Pelatut ottelut\n\n')
-                
+
                 # Check which columns we have available
                 if 'Pelipäivä' in df.columns and 'Koti' in df.columns:
                     f.write('| Päivä | Aika | Koti | Vieras | Tulos | Paikka |\n')
                     f.write('| ----- | ---- | ---- | ------ | ----- | ------ |\n')
-                    
-                    for _, row in df.iterrows():
+
+                    for _, row in played.iterrows():
                         tulos = f"{row.get('Kotitulos', '')}-{row.get('Vierastulos', '')}" if 'Kotitulos' in df.columns else ""
                         f.write(f"| {row.get('Pelipäivä', '')} | {row.get('Klo', '')} | {row.get('Koti', '')} | {row.get('Vieras', '')} | {tulos} | {row.get('Paikka', '')} |\n")
                 else:
@@ -73,8 +80,8 @@ try:
                     header = ' | '.join(columns)
                     f.write(f"| {header} |\n")
                     f.write(f"| {' | '.join(['-----' for _ in columns])} |\n")
-                    
-                    for _, row in df.iterrows():
+
+                    for _, row in played.iterrows():
                         f.write(f"| {' | '.join([str(row.get(col, '')) for col in columns])} |\n")
         except Exception as e:
             print(f"Error processing data: {e}")
