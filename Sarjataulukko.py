@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import json
 from datetime import datetime
 
 print("Starting Sarjataulukko.py...")
@@ -12,25 +13,58 @@ def process_league_table():
             df = pd.read_csv('tulokset.csv')
             print(f"Read data from tulokset.csv: {len(df)} rows")
             print(f"Columns: {df.columns.tolist()}")
-            
+
             # Figure out what kind of data we have
             if 'Pelaaja' in df.columns:
                 # This is player statistics, create a simple table
                 return create_player_statistics_table(df)
             elif 'Koti' in df.columns and 'Vieras' in df.columns:
-                # This is match data, create league table
-                return create_league_table_from_matches(df)
+                # Only use match data if we have actual results
+                played = df[
+                    df['Kotitulos'].fillna('').astype(str).str.strip().ne('') &
+                    df['Vierastulos'].fillna('').astype(str).str.strip().ne('')
+                ] if 'Kotitulos' in df.columns else df
+                if len(played) > 0:
+                    return create_league_table_from_matches(played)
+                else:
+                    print("No played matches found in tulokset.csv, trying Sarjataulukko.json fallback")
+                    return load_from_json_fallback()
             else:
                 print("Unrecognized data format")
                 return False
         else:
-            print("No source data found")
-            return False
+            print("No source data found, trying Sarjataulukko.json fallback")
+            return load_from_json_fallback()
     except Exception as e:
         print(f"Error processing league table: {e}")
         import traceback
         traceback.print_exc()
         return False
+
+def load_from_json_fallback():
+    """Load league table from Sarjataulukko.json fallback if available"""
+    if not os.path.exists('Sarjataulukko.json'):
+        print("Sarjataulukko.json not found")
+        return False
+    try:
+        with open('Sarjataulukko.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        league_df = pd.DataFrame(data)
+        league_df.to_csv('Sarjataulukko.csv', index=False)
+        with open('Sarjataulukko.md', 'w', encoding='utf-8') as f:
+            f.write('# Sarjataulukko - Ykkönen\n\n')
+            f.write('| Sij. | Joukkue | O | V | T | H | TM | PM | ME | P |\n')
+            f.write('| ---- | ------- | - | - | - | - | -- | -- | -- | - |\n')
+            for _, row in league_df.iterrows():
+                f.write(f"| {row['Sijoitus']} | {row['Joukkue']} | {row['Ottelut']} | {row['Voitot']} | "
+                        f"{row['Tasapelit']} | {row['Tappiot']} | {row['Tehdyt maalit']} | "
+                        f"{row['Päästetyt maalit']} | {row['Maaliero']} | {row['Pisteet']} |\n")
+        print(f"Loaded league table from Sarjataulukko.json ({len(league_df)} teams)")
+        return True
+    except Exception as e:
+        print(f"Error loading from JSON fallback: {e}")
+        return False
+
 
 def create_player_statistics_table(df):
     """Create a table from player statistics"""
